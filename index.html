@@ -1,0 +1,429 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCI Calorie Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    label { display: block; margin: 10px 0 4px; }
+    input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .result { font-size: 18px; margin: 8px 0; }
+    .muted { color: #555; font-size: 14px; }
+    .error { color: #a00; margin-top: 10px; min-height: 20px; }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      body { margin: 12px auto; padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>SCI Calorie Calculator</h1>
+
+  <form class="card" id="calcForm" novalidate>
+    <div class="grid">
+      <div>
+        <label for="weight" id="weightLabel">Weight (kg)</label>
+        <input id="weight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="60" />
+        <label for="weightunit">Weight unit</label>
+        <select id="weightunit">
+          <option value="kg" selected>kg</option>
+          <option value="lb">lb</option>
+        </select>
+      </div>
+      <div>
+        <label for="height" id="heightLabel">Height (cm)</label>
+        <input id="height" type="number" min="100" max="230" step="0.1" inputmode="decimal" value="173" />
+        <label for="heightunit">Height unit</label>
+        <select id="heightunit">
+          <option value="cm" selected>cm</option>
+          <option value="in">in</option>
+        </select>
+      </div>
+      <div>
+        <label for="targetbf">Target body fat (%)</label>
+        <input id="targetbf" type="number" min="5" max="45" step="0.1" inputmode="decimal" value="22" />
+      </div>
+      <div>
+        <label for="age">Age</label>
+        <input id="age" type="number" min="16" max="100" step="1" inputmode="numeric" value="40" />
+      </div>
+      <div>
+        <label for="sex">Sex</label>
+        <select id="sex">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div>
+        <label for="level">Neurologic level</label>
+        <input id="level" value="T7" placeholder="e.g. C6, T7, L2" />
+      </div>
+      <div>
+        <label for="ais">AIS</label>
+        <select id="ais">
+          <option value="A">AIS A</option>
+          <option value="B" selected>AIS B</option>
+          <option value="C">AIS C</option>
+          <option value="D">AIS D</option>
+        </select>
+      </div>
+      <div>
+        <label for="goal">Goal</label>
+        <select id="goal">
+          <option value="maintenance" selected>Maintenance</option>
+          <option value="loss">Fat loss</option>
+          <option value="gain">Lean gain</option>
+          <option value="recomp">Recomp</option>
+        </select>
+      </div>
+      <div>
+        <label for="activity">Activity</label>
+        <select id="activity">
+          <option value="low">Low</option>
+          <option value="moderate" selected>Moderate</option>
+          <option value="high">High</option>
+          <option value="athlete">Athlete</option>
+        </select>
+      </div>
+      <div>
+        <label for="daytype">Day type</label>
+        <select id="daytype">
+          <option value="rest">Rest</option>
+          <option value="light_training">Light training</option>
+          <option value="hard_training" selected>Hard training</option>
+          <option value="double_session">Double session</option>
+        </select>
+      </div>
+      <div>
+        <label for="macrobasis">Macro density</label>
+        <select id="macrobasis">
+          <option value="kg" selected>Show g/kg</option>
+          <option value="lb">Show g/lb</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit">Calculate</button>
+    <div class="error" id="error" role="status" aria-live="polite"></div>
+  </form>
+
+  <div class="card">
+    <div class="result" id="calories">Calories: —</div>
+    <div class="result" id="protein">Protein: —</div>
+    <div class="result" id="fat">Fat: —</div>
+    <div class="result" id="carbs">Carbs: —</div>
+    <div class="muted" id="breakdown">Breakdown: —</div>
+    <div class="muted">Target body fat nudges deficit/surplus size and macro emphasis. This remains an estimate and should be checked against weekly trend data.</div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "sci-calculator-v1";
+    const fieldIds = ["weight", "weightunit", "height", "heightunit", "targetbf", "age", "sex", "level", "ais", "goal", "activity", "daytype", "macrobasis"];
+
+    function clamp(v, low, high) {
+      return Math.min(high, Math.max(low, v));
+    }
+
+    function toKg(weight, unit) {
+      return unit === "lb" ? weight * 0.45359237 : weight;
+    }
+
+    function fromKg(weightKg, unit) {
+      return unit === "lb" ? weightKg / 0.45359237 : weightKg;
+    }
+
+    function toCm(height, unit) {
+      return unit === "in" ? height * 2.54 : height;
+    }
+
+    function fromCm(heightCm, unit) {
+      return unit === "in" ? heightCm / 2.54 : heightCm;
+    }
+
+    function refreshUnitUI() {
+      const weightUnit = document.getElementById("weightunit").value;
+      const heightUnit = document.getElementById("heightunit").value;
+
+      const weightInput = document.getElementById("weight");
+      const heightInput = document.getElementById("height");
+      const weightLabel = document.getElementById("weightLabel");
+      const heightLabel = document.getElementById("heightLabel");
+
+      weightLabel.textContent = `Weight (${weightUnit})`;
+      heightLabel.textContent = `Height (${heightUnit})`;
+
+      if (weightUnit === "kg") {
+        weightInput.min = "20";
+        weightInput.max = "300";
+      } else {
+        weightInput.min = "44";
+        weightInput.max = "660";
+      }
+
+      if (heightUnit === "cm") {
+        heightInput.min = "100";
+        heightInput.max = "230";
+      } else {
+        heightInput.min = "39";
+        heightInput.max = "91";
+      }
+    }
+
+    function convertDisplayedUnits(oldWeightUnit, newWeightUnit, oldHeightUnit, newHeightUnit) {
+      const weightInput = document.getElementById("weight");
+      const heightInput = document.getElementById("height");
+
+      const weightValue = Number(weightInput.value);
+      const heightValue = Number(heightInput.value);
+
+      if (Number.isFinite(weightValue) && oldWeightUnit !== newWeightUnit) {
+        const weightKg = toKg(weightValue, oldWeightUnit);
+        weightInput.value = fromKg(weightKg, newWeightUnit).toFixed(1);
+      }
+
+      if (Number.isFinite(heightValue) && oldHeightUnit !== newHeightUnit) {
+        const heightCm = toCm(heightValue, oldHeightUnit);
+        heightInput.value = fromCm(heightCm, newHeightUnit).toFixed(1);
+      }
+    }
+
+    function readFormValues() {
+      const weightUnit = document.getElementById("weightunit").value;
+      const heightUnit = document.getElementById("heightunit").value;
+      const weightInput = Number(document.getElementById("weight").value);
+      const heightInput = Number(document.getElementById("height").value);
+
+      return {
+        weight: toKg(weightInput, weightUnit),
+        height: toCm(heightInput, heightUnit),
+        weightUnit,
+        heightUnit,
+        targetBf: Number(document.getElementById("targetbf").value),
+        age: Number(document.getElementById("age").value),
+        sex: document.getElementById("sex").value,
+        level: document.getElementById("level").value.toUpperCase().trim(),
+        ais: document.getElementById("ais").value,
+        goal: document.getElementById("goal").value,
+        activity: document.getElementById("activity").value,
+        dayType: document.getElementById("daytype").value
+      };
+    }
+
+    function validate(values) {
+      if (!Number.isFinite(values.weight) || values.weight < 20 || values.weight > 300) {
+        return "Enter weight between 20 and 300 kg.";
+      }
+      if (!Number.isFinite(values.height) || values.height < 100 || values.height > 230) {
+        return "Enter height between 100 and 230 cm.";
+      }
+      if (!Number.isFinite(values.targetBf) || values.targetBf < 5 || values.targetBf > 45) {
+        return "Enter target body fat between 5 and 45%.";
+      }
+      if (!Number.isFinite(values.age) || values.age < 16 || values.age > 100) {
+        return "Enter age between 16 and 100 years.";
+      }
+      if (!/^[CTLS]\d{1,2}$/i.test(values.level)) {
+        return "Neurologic level must look like C6, T7, L2, or S1.";
+      }
+      return "";
+    }
+
+    function setError(message) {
+      document.getElementById("error").textContent = message;
+    }
+
+    function saveState() {
+      const values = {};
+      for (const id of fieldIds) {
+        values[id] = document.getElementById(id).value;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const values = JSON.parse(raw);
+        for (const id of fieldIds) {
+          if (Object.prototype.hasOwnProperty.call(values, id)) {
+            document.getElementById(id).value = values[id];
+          }
+        }
+      } catch (err) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    function bodyFatBand(targetBf, sex) {
+      if (sex === "female") {
+        if (targetBf <= 20) return "very_lean";
+        if (targetBf <= 24) return "lean";
+        if (targetBf <= 31) return "mid";
+        return "high";
+      }
+      if (targetBf <= 10) return "very_lean";
+      if (targetBf <= 14) return "lean";
+      if (targetBf <= 20) return "mid";
+      return "high";
+    }
+
+    function formatMacroLine(label, grams, weightKg, basis) {
+      const basisWeight = basis === "lb" ? fromKg(weightKg, "lb") : weightKg;
+      const density = basisWeight > 0 ? grams / basisWeight : 0;
+      const densityUnit = basis === "lb" ? "g/lb" : "g/kg";
+      return `${label}: ${Math.round(grams)} g (${density.toFixed(2)} ${densityUnit})`;
+    }
+
+    function calculate() {
+      const values = readFormValues();
+      const validationError = validate(values);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      setError("");
+
+      const { weight, height, targetBf, age, sex, level, ais, goal, activity, dayType } = values;
+      const macroBasis = document.getElementById("macrobasis").value;
+
+      // Mifflin-St Jeor baseline, then adjusted with SCI and activity factors.
+      const bmr = 10 * weight + 6.25 * height - 5 * age + (sex === "male" ? 5 : -161);
+      const bfBand = bodyFatBand(targetBf, sex);
+
+      let factor = 1.15;
+      if (level.startsWith("C")) factor -= 0.08;
+      if (level.startsWith("L") || level.startsWith("S")) factor += 0.04;
+      if (ais === "A") factor -= 0.05;
+      if (ais === "B") factor -= 0.03;
+      if (ais === "D") factor += 0.05;
+      factor = clamp(factor, 1.02, 1.28);
+
+      const activityMultiplier = {
+        low: 1.00,
+        moderate: 1.08,
+        high: 1.16,
+        athlete: 1.24
+      }[activity];
+
+      const dayBump = {
+        rest: 0,
+        light_training: 100,
+        hard_training: 225,
+        double_session: 350
+      }[dayType];
+
+      let calories = bmr * factor * activityMultiplier + dayBump;
+      let goalDelta = 0;
+
+      if (goal === "loss") {
+        const lossDeltaByBand = {
+          very_lean: -125,
+          lean: -175,
+          mid: -250,
+          high: -325
+        };
+        goalDelta = lossDeltaByBand[bfBand];
+      }
+      if (goal === "gain") {
+        const gainDeltaByBand = {
+          very_lean: 225,
+          lean: 175,
+          mid: 125,
+          high: 75
+        };
+        goalDelta = gainDeltaByBand[bfBand];
+      }
+      if (goal === "recomp") {
+        const recompBaseByBand = {
+          very_lean: 75,
+          lean: 25,
+          mid: -50,
+          high: -125
+        };
+        goalDelta = recompBaseByBand[bfBand] + (dayType === "rest" ? -50 : 50);
+      }
+      calories += goalDelta;
+
+      let proteinPerKg = 1.2;
+      if (goal === "loss") proteinPerKg = 1.8;
+      else if (goal === "gain") proteinPerKg = 1.6;
+      else if (goal === "recomp") proteinPerKg = 1.75;
+      else if (activity === "athlete") proteinPerKg = 1.6;
+      if (bfBand === "very_lean" || bfBand === "lean") proteinPerKg += 0.1;
+
+      const protein = weight * proteinPerKg;
+
+      let fatPct = 0.30;
+      if (goal === "gain" && (dayType === "hard_training" || dayType === "double_session")) {
+        fatPct = 0.25;
+      } else if (goal === "gain" || goal === "recomp") {
+        fatPct = 0.28;
+      } else if (goal === "maintenance" && activity === "low") {
+        fatPct = 0.32;
+      }
+      if (bfBand === "very_lean") fatPct -= 0.02;
+      if (bfBand === "high") fatPct += 0.02;
+      fatPct = clamp(fatPct, 0.22, 0.36);
+
+      const fat = (calories * fatPct) / 9;
+      const carbs = Math.max(0, (calories - protein * 4 - fat * 9) / 4);
+
+      document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
+      document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis);
+      document.getElementById("fat").textContent = formatMacroLine("Fat", fat, weight, macroBasis);
+      document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis);
+      document.getElementById("breakdown").textContent =
+        `Breakdown: BMR ${Math.round(bmr)}, SCI factor ${factor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target BF band ${bfBand.replace("_", " ")}.`;
+
+      saveState();
+    }
+
+    document.getElementById("calcForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      calculate();
+    });
+
+    for (const id of fieldIds) {
+      document.getElementById(id).addEventListener("change", saveState);
+    }
+
+    loadState();
+    refreshUnitUI();
+
+    const weightUnitSelect = document.getElementById("weightunit");
+    const heightUnitSelect = document.getElementById("heightunit");
+    weightUnitSelect.dataset.prev = weightUnitSelect.value;
+    heightUnitSelect.dataset.prev = heightUnitSelect.value;
+
+    weightUnitSelect.addEventListener("change", function () {
+      const oldWeightUnit = weightUnitSelect.dataset.prev || "kg";
+      const newWeightUnit = weightUnitSelect.value;
+      const oldHeightUnit = heightUnitSelect.dataset.prev || heightUnitSelect.value;
+      const newHeightUnit = heightUnitSelect.value;
+      convertDisplayedUnits(oldWeightUnit, newWeightUnit, oldHeightUnit, newHeightUnit);
+      weightUnitSelect.dataset.prev = newWeightUnit;
+      refreshUnitUI();
+      saveState();
+      calculate();
+    });
+
+    heightUnitSelect.addEventListener("change", function () {
+      const oldWeightUnit = weightUnitSelect.dataset.prev || weightUnitSelect.value;
+      const newWeightUnit = weightUnitSelect.value;
+      const oldHeightUnit = heightUnitSelect.dataset.prev || "cm";
+      const newHeightUnit = heightUnitSelect.value;
+      convertDisplayedUnits(oldWeightUnit, newWeightUnit, oldHeightUnit, newHeightUnit);
+      heightUnitSelect.dataset.prev = newHeightUnit;
+      refreshUnitUI();
+      saveState();
+      calculate();
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
