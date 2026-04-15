@@ -4,9 +4,13 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.11.1
+Current version: 1.12.1
 
 ### Minor Releases (new features)
+
+- 1.12.0 (2026-04-15)
+	Summary: Updated day context model.
+	Changes: Replaced day type with Daily routine / job demand options and positioned it next to Activity, with wheelchair controls below.
 
 - 1.11.0 (2026-04-15)
 	Summary: Added safety guardrails and refined wheelchair bump behavior.
@@ -29,6 +33,10 @@ Current version: 1.11.1
 	Changes: Pregnancy and breastfeeding calorie additions, optional cycle-aware mode, and pregnancy-safe goal handling.
 
 ### Patch Releases (refinements)
+
+- 1.12.1 (2026-04-15)
+	Summary: Fixed timeline and gain/loss pacing logic.
+	Changes: Hides timeline when Maintenance is selected, mirrors gain pace behavior to fat-loss pace selection, and fixed stale day-type references in recomp/gain logic.
 
 - 1.11.1 (2026-04-15)
 	Summary: Clarified activity selection.
