@@ -50,6 +50,8 @@
       <div>
         <label for="weight" id="weightLabel">Weight (kg)</label>
         <input id="weight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="60" />
+        <label for="targetweight" id="targetWeightLabel">Target weight (kg)</label>
+        <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
         <label for="weightunit">Weight unit</label>
         <select id="weightunit">
           <option value="kg" selected>kg</option>
@@ -64,14 +66,6 @@
           <option value="cm" selected>cm</option>
           <option value="in">in</option>
         </select>
-      </div>
-      <div>
-        <label for="targetbf">Target body fat (%)</label>
-        <input id="targetbf" type="number" min="5" max="45" step="0.1" inputmode="decimal" value="22" />
-      </div>
-      <div>
-        <label for="currentbf">Current body fat (%) optional</label>
-        <input id="currentbf" type="number" min="5" max="60" step="0.1" inputmode="decimal" placeholder="e.g. 28" />
       </div>
       <div>
         <label for="age">Age</label>
@@ -167,7 +161,7 @@
     <div class="result" id="carbs">Carbs: —</div>
     <div class="result" id="timeline">Timeline to target: —</div>
     <div class="muted" id="breakdown">Breakdown: —</div>
-    <div class="muted">Target body fat nudges deficit/surplus size and macro emphasis. This remains an estimate and should be checked against weekly trend data.</div>
+    <div class="muted">Target weight steers deficit/surplus size and timeline estimate. This remains an estimate and should be checked against weekly trend data.</div>
   </div>
 
   <div class="card">
@@ -186,11 +180,11 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer" id="versionTag">Version 1.5.0 | Updated 2026-04-15</div>
+  <div class="muted footer" id="versionTag">Version 1.6.0 | Updated 2026-04-15</div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
-    const fieldIds = ["weight", "weightunit", "height", "heightunit", "targetbf", "currentbf", "age", "sex", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "activity", "daytype", "macrobasis"];
+    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "activity", "daytype", "macrobasis"];
 
     function clamp(v, low, high) {
       return Math.min(high, Math.max(low, v));
@@ -217,19 +211,26 @@
       const heightUnit = document.getElementById("heightunit").value;
 
       const weightInput = document.getElementById("weight");
+      const targetWeightInput = document.getElementById("targetweight");
       const heightInput = document.getElementById("height");
       const weightLabel = document.getElementById("weightLabel");
+      const targetWeightLabel = document.getElementById("targetWeightLabel");
       const heightLabel = document.getElementById("heightLabel");
 
       weightLabel.textContent = `Weight (${weightUnit})`;
+      targetWeightLabel.textContent = `Target weight (${weightUnit})`;
       heightLabel.textContent = `Height (${heightUnit})`;
 
       if (weightUnit === "kg") {
         weightInput.min = "20";
         weightInput.max = "300";
+        targetWeightInput.min = "20";
+        targetWeightInput.max = "300";
       } else {
         weightInput.min = "44";
         weightInput.max = "660";
+        targetWeightInput.min = "44";
+        targetWeightInput.max = "660";
       }
 
       if (heightUnit === "cm") {
@@ -243,14 +244,21 @@
 
     function convertDisplayedUnits(oldWeightUnit, newWeightUnit, oldHeightUnit, newHeightUnit) {
       const weightInput = document.getElementById("weight");
+      const targetWeightInput = document.getElementById("targetweight");
       const heightInput = document.getElementById("height");
 
       const weightValue = Number(weightInput.value);
+      const targetWeightValue = Number(targetWeightInput.value);
       const heightValue = Number(heightInput.value);
 
       if (Number.isFinite(weightValue) && oldWeightUnit !== newWeightUnit) {
         const weightKg = toKg(weightValue, oldWeightUnit);
         weightInput.value = fromKg(weightKg, newWeightUnit).toFixed(1);
+      }
+
+      if (Number.isFinite(targetWeightValue) && oldWeightUnit !== newWeightUnit) {
+        const targetWeightKg = toKg(targetWeightValue, oldWeightUnit);
+        targetWeightInput.value = fromKg(targetWeightKg, newWeightUnit).toFixed(1);
       }
 
       if (Number.isFinite(heightValue) && oldHeightUnit !== newHeightUnit) {
@@ -263,15 +271,15 @@
       const weightUnit = document.getElementById("weightunit").value;
       const heightUnit = document.getElementById("heightunit").value;
       const weightInput = Number(document.getElementById("weight").value);
+      const targetWeightInput = Number(document.getElementById("targetweight").value);
       const heightInput = Number(document.getElementById("height").value);
 
       return {
         weight: toKg(weightInput, weightUnit),
+        targetWeight: toKg(targetWeightInput, weightUnit),
         height: toCm(heightInput, heightUnit),
         weightUnit,
         heightUnit,
-        targetBf: Number(document.getElementById("targetbf").value),
-        currentBf: Number(document.getElementById("currentbf").value),
         age: Number(document.getElementById("age").value),
         sex: document.getElementById("sex").value,
         level: document.getElementById("level").value.toUpperCase().trim(),
@@ -292,13 +300,8 @@
       if (!Number.isFinite(values.height) || values.height < 100 || values.height > 230) {
         return "Enter height between 100 and 230 cm.";
       }
-      if (!Number.isFinite(values.targetBf) || values.targetBf < 5 || values.targetBf > 45) {
-        return "Enter target body fat between 5 and 45%.";
-      }
-      if (document.getElementById("currentbf").value.trim() !== "") {
-        if (!Number.isFinite(values.currentBf) || values.currentBf < 5 || values.currentBf > 60) {
-          return "If provided, current body fat must be between 5 and 60%.";
-        }
+      if (!Number.isFinite(values.targetWeight) || values.targetWeight < 20 || values.targetWeight > 300) {
+        return "Enter target weight between 20 and 300 kg.";
       }
       if (!Number.isFinite(values.age) || values.age < 16 || values.age > 100) {
         return "Enter age between 16 and 100 years.";
@@ -336,19 +339,6 @@
       }
     }
 
-    function bodyFatBand(targetBf, sex) {
-      if (sex === "female") {
-        if (targetBf <= 20) return "very_lean";
-        if (targetBf <= 24) return "lean";
-        if (targetBf <= 31) return "mid";
-        return "high";
-      }
-      if (targetBf <= 10) return "very_lean";
-      if (targetBf <= 14) return "lean";
-      if (targetBf <= 20) return "mid";
-      return "high";
-    }
-
     function getSciFactor(level, ais) {
       let factor = 1.0;
       if (level.startsWith("C")) factor -= 0.08;
@@ -372,25 +362,22 @@
       return `${label}: ${Math.round(grams)} g (${density.toFixed(2)} ${densityUnit})`;
     }
 
-    function estimateTimelineText(currentBf, targetBf, weightKg, calorieDelta) {
-      if (!Number.isFinite(currentBf)) {
-        return "Timeline to target: add current body fat to estimate timeline.";
-      }
+    function estimateTimelineText(weightKg, targetWeightKg, calorieDelta) {
+      const deltaKg = targetWeightKg - weightKg;
 
-      if (Math.abs(currentBf - targetBf) < 0.25) {
-        return "Timeline to target: already near target body fat.";
+      if (Math.abs(deltaKg) < 0.25) {
+        return "Timeline to target: already near target weight.";
       }
-
-      const ffm = weightKg * (1 - currentBf / 100);
-      if (ffm <= 0 || targetBf >= 50) {
-        return "Timeline to target: unable to estimate with current inputs.";
-      }
-
-      const targetWeight = ffm / (1 - targetBf / 100);
-      const deltaKg = targetWeight - weightKg;
 
       if (Math.abs(calorieDelta) < 25) {
         return "Timeline to target: calorie change is very small, progress may be slow.";
+      }
+
+      if (deltaKg < 0 && calorieDelta >= 0) {
+        return "Timeline to target: target is lower, but plan is not in a deficit.";
+      }
+      if (deltaKg > 0 && calorieDelta <= 0) {
+        return "Timeline to target: target is higher, but plan is not in a surplus.";
       }
 
       const kcalsPerKg = 7700;
@@ -409,7 +396,7 @@
       }
       setError("");
 
-      const { weight, height, targetBf, currentBf, age, sex, level, ais, reeModel, phase, pressureInjury, goal, activity, dayType } = values;
+      const { weight, targetWeight, height, age, sex, level, ais, reeModel, phase, pressureInjury, goal, activity, dayType } = values;
       const macroBasis = document.getElementById("macrobasis").value;
 
       const bmrMifflin = 10 * weight + 6.25 * height - 5 * age + (sex === "male" ? 5 : -161);
@@ -418,7 +405,8 @@
       const useSciModel = reeModel === "sci" || (reeModel === "auto" && phase === "chronic");
       const reeBase = useSciModel ? bmrSciAdjusted : bmrMifflin;
       const reeLabel = getReeModelLabel(reeModel, phase);
-      const bfBand = bodyFatBand(targetBf, sex);
+      const targetDeltaKg = targetWeight - weight;
+      const targetDirection = targetDeltaKg < -0.25 ? "loss" : targetDeltaKg > 0.25 ? "gain" : "maintain";
 
       const activityMultiplier = {
         low: 1.00,
@@ -445,32 +433,13 @@
       let calories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump;
       let goalDelta = 0;
 
-      if (goal === "loss") {
-        const lossDeltaByBand = {
-          very_lean: -125,
-          lean: -175,
-          mid: -250,
-          high: -325
-        };
-        goalDelta = lossDeltaByBand[bfBand];
-      }
-      if (goal === "gain") {
-        const gainDeltaByBand = {
-          very_lean: 225,
-          lean: 175,
-          mid: 125,
-          high: 75
-        };
-        goalDelta = gainDeltaByBand[bfBand];
-      }
+      const targetInfluencedGoal = goal === "maintenance" ? targetDirection : goal;
+      const distanceBump = clamp(Math.round(Math.abs(targetDeltaKg) * 20), 0, 200);
+
+      if (targetInfluencedGoal === "loss") goalDelta = -(150 + distanceBump);
+      if (targetInfluencedGoal === "gain") goalDelta = 100 + distanceBump;
       if (goal === "recomp") {
-        const recompBaseByBand = {
-          very_lean: 75,
-          lean: 25,
-          mid: -50,
-          high: -125
-        };
-        goalDelta = recompBaseByBand[bfBand] + (dayType === "rest" ? -50 : 50);
+        goalDelta = dayType === "rest" ? -75 : 75;
       }
       calories += goalDelta;
 
@@ -479,7 +448,6 @@
       else if (goal === "gain") proteinPerKg = 1.6;
       else if (goal === "recomp") proteinPerKg = 1.75;
       else if (activity === "athlete") proteinPerKg = 1.6;
-      if (bfBand === "very_lean" || bfBand === "lean") proteinPerKg += 0.1;
 
       if (pressureInjury === "yes") {
         const pressureFloor = phase === "acute" || phase === "subacute" ? 2.0 : 1.8;
@@ -496,8 +464,6 @@
       } else if (goal === "maintenance" && activity === "low") {
         fatPct = 0.32;
       }
-      if (bfBand === "very_lean") fatPct -= 0.02;
-      if (bfBand === "high") fatPct += 0.02;
       fatPct = clamp(fatPct, 0.22, 0.36);
 
       const fat = (calories * fatPct) / 9;
@@ -505,7 +471,7 @@
 
       const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump;
       const calorieDelta = calories - estimatedMaintenance;
-      const timelineText = estimateTimelineText(currentBf, targetBf, weight, calorieDelta);
+      const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
 
       document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
       document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis);
@@ -513,7 +479,7 @@
       document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis);
       document.getElementById("timeline").textContent = timelineText;
       document.getElementById("breakdown").textContent =
-        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target BF band ${bfBand.replace("_", " ")}.`;
+        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
 
       saveState();
     }
