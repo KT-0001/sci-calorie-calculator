@@ -7,12 +7,14 @@
   <style>
     body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
     .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .brief-title { margin: 0 0 6px; font-size: 16px; }
     label { display: block; margin: 10px 0 4px; }
     input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .result { font-size: 18px; margin: 8px 0; }
     .muted { color: #555; font-size: 14px; }
     .error { color: #a00; margin-top: 10px; min-height: 20px; }
+    .footer { text-align: center; margin-top: 8px; }
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; }
       body { margin: 12px auto; padding: 12px; }
@@ -21,6 +23,14 @@
 </head>
 <body>
   <h1>SCI Calorie Calculator</h1>
+
+  <div class="card">
+    <h2 class="brief-title">Brief</h2>
+    <div class="muted">
+      This calculator is designed for spinal cord injury nutrition planning using assumptions informed by published SCI energy expenditure and macro guidance.
+      Generic calorie calculators are built for non-SCI populations and often do not work well here, so this tool applies SCI-specific adjustment factors.
+    </div>
+  </div>
 
   <form class="card" id="calcForm" novalidate>
     <div class="grid">
@@ -118,6 +128,8 @@
     <div class="muted" id="breakdown">Breakdown: —</div>
     <div class="muted">Target body fat nudges deficit/surplus size and macro emphasis. This remains an estimate and should be checked against weekly trend data.</div>
   </div>
+
+  <div class="muted footer" id="versionTag">Version 1.2.0 | Updated 2026-04-15</div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
