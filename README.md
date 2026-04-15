@@ -4,9 +4,13 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.9.0
+Current version: 1.10.0
 
 ### Minor Releases (new features)
+
+- 1.10.0 (2026-04-15)
+	Summary: Added selectable fat-loss pace.
+	Changes: Added Fat-loss pace dropdown (kg/week and lb/week labels), shown only when Fat loss is selected, and used selected pace to set deficit.
 
 - 1.9.0 (2026-04-15)
 	Summary: Added plan sharing.
