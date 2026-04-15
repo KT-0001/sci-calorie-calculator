@@ -15,6 +15,7 @@
     .muted { color: #555; font-size: 14px; }
     .error { color: #a00; margin-top: 10px; min-height: 20px; }
     .footer { text-align: center; margin-top: 8px; }
+    .method-list { margin: 6px 0 0; padding-left: 18px; }
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; }
       body { margin: 12px auto; padding: 12px; }
@@ -45,6 +46,17 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
+  <div class="card">
+    <h2 class="brief-title">Method</h2>
+    <div class="muted">How each part of the calculator maps to the literature above:</div>
+    <ul class="method-list">
+      <li><span class="muted">REE/BMR baseline: conventional predictive equation, then adjusted for SCI context.</span></li>
+      <li><span class="muted">SCI adjustment factor (level and AIS): reflects reduced average expenditure in SCI populations [1,2,3].</span></li>
+      <li><span class="muted">Goal deltas and macro structure: informed by SCI nutrition/dietetics reviews [4,5].</span></li>
+      <li><span class="muted">Output is a starting estimate; weekly body-weight and composition trend should guide refinement.</span></li>
+    </ul>
+  </div>
+
   <form class="card" id="calcForm" novalidate>
     <div class="grid">
       <div>
@@ -68,6 +80,10 @@
       <div>
         <label for="targetbf">Target body fat (%)</label>
         <input id="targetbf" type="number" min="5" max="45" step="0.1" inputmode="decimal" value="22" />
+      </div>
+      <div>
+        <label for="currentbf">Current body fat (%) optional</label>
+        <input id="currentbf" type="number" min="5" max="60" step="0.1" inputmode="decimal" placeholder="e.g. 28" />
       </div>
       <div>
         <label for="age">Age</label>
@@ -138,15 +154,16 @@
     <div class="result" id="protein">Protein: —</div>
     <div class="result" id="fat">Fat: —</div>
     <div class="result" id="carbs">Carbs: —</div>
+    <div class="result" id="timeline">Timeline to target: —</div>
     <div class="muted" id="breakdown">Breakdown: —</div>
     <div class="muted">Target body fat nudges deficit/surplus size and macro emphasis. This remains an estimate and should be checked against weekly trend data.</div>
   </div>
 
-  <div class="muted footer" id="versionTag">Version 1.3.0 | Updated 2026-04-15</div>
+  <div class="muted footer" id="versionTag">Version 1.4.0 | Updated 2026-04-15</div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
-    const fieldIds = ["weight", "weightunit", "height", "heightunit", "targetbf", "age", "sex", "level", "ais", "goal", "activity", "daytype", "macrobasis"];
+    const fieldIds = ["weight", "weightunit", "height", "heightunit", "targetbf", "currentbf", "age", "sex", "level", "ais", "goal", "activity", "daytype", "macrobasis"];
 
     function clamp(v, low, high) {
       return Math.min(high, Math.max(low, v));
@@ -227,6 +244,7 @@
         weightUnit,
         heightUnit,
         targetBf: Number(document.getElementById("targetbf").value),
+        currentBf: Number(document.getElementById("currentbf").value),
         age: Number(document.getElementById("age").value),
         sex: document.getElementById("sex").value,
         level: document.getElementById("level").value.toUpperCase().trim(),
@@ -246,6 +264,11 @@
       }
       if (!Number.isFinite(values.targetBf) || values.targetBf < 5 || values.targetBf > 45) {
         return "Enter target body fat between 5 and 45%.";
+      }
+      if (document.getElementById("currentbf").value.trim() !== "") {
+        if (!Number.isFinite(values.currentBf) || values.currentBf < 5 || values.currentBf > 60) {
+          return "If provided, current body fat must be between 5 and 60%.";
+        }
       }
       if (!Number.isFinite(values.age) || values.age < 16 || values.age > 100) {
         return "Enter age between 16 and 100 years.";
@@ -303,6 +326,34 @@
       return `${label}: ${Math.round(grams)} g (${density.toFixed(2)} ${densityUnit})`;
     }
 
+    function estimateTimelineText(currentBf, targetBf, weightKg, calorieDelta) {
+      if (!Number.isFinite(currentBf)) {
+        return "Timeline to target: add current body fat to estimate timeline.";
+      }
+
+      if (Math.abs(currentBf - targetBf) < 0.25) {
+        return "Timeline to target: already near target body fat.";
+      }
+
+      const ffm = weightKg * (1 - currentBf / 100);
+      if (ffm <= 0 || targetBf >= 50) {
+        return "Timeline to target: unable to estimate with current inputs.";
+      }
+
+      const targetWeight = ffm / (1 - targetBf / 100);
+      const deltaKg = targetWeight - weightKg;
+
+      if (Math.abs(calorieDelta) < 25) {
+        return "Timeline to target: calorie change is very small, progress may be slow.";
+      }
+
+      const kcalsPerKg = 7700;
+      const weeks = Math.abs((Math.abs(deltaKg) * kcalsPerKg) / (Math.abs(calorieDelta) * 7));
+      const direction = deltaKg < 0 ? "reduce" : "gain";
+
+      return `Timeline to target: about ${weeks.toFixed(1)} weeks to ${direction} ${Math.abs(deltaKg).toFixed(1)} kg (estimate).`;
+    }
+
     function calculate() {
       const values = readFormValues();
       const validationError = validate(values);
@@ -312,7 +363,7 @@
       }
       setError("");
 
-      const { weight, height, targetBf, age, sex, level, ais, goal, activity, dayType } = values;
+      const { weight, height, targetBf, currentBf, age, sex, level, ais, goal, activity, dayType } = values;
       const macroBasis = document.getElementById("macrobasis").value;
 
       // Mifflin-St Jeor baseline, then adjusted with SCI and activity factors.
@@ -397,10 +448,15 @@
       const fat = (calories * fatPct) / 9;
       const carbs = Math.max(0, (calories - protein * 4 - fat * 9) / 4);
 
+      const estimatedMaintenance = bmr * factor * activityMultiplier + dayBump;
+      const calorieDelta = calories - estimatedMaintenance;
+      const timelineText = estimateTimelineText(currentBf, targetBf, weight, calorieDelta);
+
       document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
       document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis);
       document.getElementById("fat").textContent = formatMacroLine("Fat", fat, weight, macroBasis);
       document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis);
+      document.getElementById("timeline").textContent = timelineText;
       document.getElementById("breakdown").textContent =
         `Breakdown: BMR ${Math.round(bmr)}, SCI factor ${factor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target BF band ${bfBand.replace("_", " ")}.`;
 
