@@ -4,9 +4,13 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.8.1
+Current version: 1.9.0
 
 ### Minor Releases (new features)
+
+- 1.9.0 (2026-04-15)
+	Summary: Added plan sharing.
+	Changes: Added Share plan button with native share support and clipboard fallback, including a compact input/output summary.
 
 - 1.8.0 (2026-04-15)
 	Summary: Added wheelchair-specific calorie logic.

@@ -19,9 +19,12 @@
     .error { color: #a00; margin-top: 10px; min-height: 20px; }
     .footer { text-align: center; margin-top: 8px; }
     .method-list { margin: 6px 0 0; padding-left: 18px; }
+    .result-actions { margin-top: 10px; }
+    .result-actions button { width: auto; min-width: 140px; }
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; }
       body { margin: 12px auto; padding: 12px; }
+      .result-actions button { width: 100%; }
     }
   </style>
 </head>
@@ -220,6 +223,10 @@
     <div class="result" id="carbs">Carbs: —</div>
     <div class="result" id="timeline">Timeline to target: —</div>
     <div class="muted" id="breakdown">Breakdown: —</div>
+    <div class="result-actions">
+      <button id="shareButton" type="button">Share plan</button>
+    </div>
+    <div class="muted" id="shareStatus" role="status" aria-live="polite"></div>
     <div class="muted">Target weight steers deficit/surplus size and timeline estimate. This remains an estimate and should be checked against weekly trend data.</div>
   </div>
 
@@ -239,7 +246,7 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.8.1 | Updated 2026-04-15</a></div>
+  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.9.0 | Updated 2026-04-15</a></div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
@@ -539,6 +546,72 @@
       return `Expected weekly change: about ${weeklyKg.toFixed(2)} kg/week (${weeklyLb.toFixed(2)} lb/week).`;
     }
 
+    function setShareStatus(message) {
+      document.getElementById("shareStatus").textContent = message;
+    }
+
+    function buildShareText() {
+      const values = readFormValues();
+      const goalsLabel = document.getElementById("goal").selectedOptions[0].textContent;
+      const activityLabel = document.getElementById("activity").selectedOptions[0].textContent;
+      const dayTypeLabel = document.getElementById("daytype").selectedOptions[0].textContent;
+
+      const lines = [
+        "SCI Calorie Calculator Plan",
+        `Date: ${new Date().toLocaleDateString()}`,
+        "",
+        "Inputs",
+        `Sex: ${values.sex}`,
+        `Age: ${values.age}`,
+        `Weight: ${values.weight.toFixed(1)} kg`,
+        `Target weight: ${values.targetWeight.toFixed(1)} kg`,
+        `Goal: ${goalsLabel}`,
+        `Activity: ${activityLabel}`,
+        `Day type: ${dayTypeLabel}`,
+        "",
+        "Outputs",
+        document.getElementById("calories").textContent,
+        document.getElementById("rate").textContent,
+        document.getElementById("protein").textContent,
+        document.getElementById("fat").textContent,
+        document.getElementById("carbs").textContent,
+        document.getElementById("timeline").textContent,
+        document.getElementById("breakdown").textContent
+      ];
+
+      return lines.join("\n");
+    }
+
+    async function handleShare() {
+      const text = buildShareText();
+      const title = "SCI Calorie Calculator Plan";
+      const url = window.location.href.split("#")[0];
+
+      try {
+        if (navigator.share) {
+          await navigator.share({ title, text, url });
+          setShareStatus("Plan shared.");
+          return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(`${text}\n\n${url}`);
+          setShareStatus("Plan copied to clipboard.");
+          return;
+        }
+
+        const tempArea = document.createElement("textarea");
+        tempArea.value = `${text}\n\n${url}`;
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempArea);
+        setShareStatus("Plan copied to clipboard.");
+      } catch (err) {
+        setShareStatus("Share was canceled or unavailable.");
+      }
+    }
+
     function calculate() {
       const values = readFormValues();
       const validationError = validate(values);
@@ -704,6 +777,10 @@
     document.getElementById("cyclebump").addEventListener("change", function () {
       saveState();
       calculate();
+    });
+
+    document.getElementById("shareButton").addEventListener("click", function () {
+      handleShare();
     });
 
     document.getElementById("wheelchairuser").addEventListener("change", function () {
