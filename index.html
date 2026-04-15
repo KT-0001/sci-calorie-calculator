@@ -183,10 +183,10 @@
       <div>
         <label for="activity">Activity</label>
         <select id="activity">
-          <option value="low">Low</option>
-          <option value="moderate" selected>Moderate</option>
-          <option value="high">High</option>
-          <option value="athlete">Athlete</option>
+          <option value="low">Low (0-2 training hrs/week)</option>
+          <option value="moderate" selected>Moderate (3-5 training hrs/week)</option>
+          <option value="high">High (6-8 training hrs/week)</option>
+          <option value="athlete">Athlete (9+ training hrs/week)</option>
         </select>
       </div>
       <div>
@@ -202,6 +202,9 @@
           <option value="manual" selected>Manual</option>
           <option value="electric">Electric</option>
         </select>
+        <label for="wheelchairlowonly" style="margin-top: 8px;">
+          <input id="wheelchairlowonly" type="checkbox" style="width: auto; margin-right: 6px;" checked /> Apply wheelchair bump only when activity is Low
+        </label>
         <div class="muted" style="margin-top: 6px;">Manual default bump is 100 kcal/day and scales down as selected activity increases. Electric default bump is 0.</div>
       </div>
       <div>
@@ -257,11 +260,11 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.10.0 | Updated 2026-04-15</a></div>
+  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.11.1 | Updated 2026-04-15</a></div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
-    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "pregnancy", "breastfeeding", "cycleadjustenabled", "cyclephase", "cyclebump", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "lossrate", "activity", "wheelchairuser", "wheelchairtype", "daytype", "macrobasis"];
+    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "pregnancy", "breastfeeding", "cycleadjustenabled", "cyclephase", "cyclebump", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "lossrate", "activity", "wheelchairuser", "wheelchairtype", "wheelchairlowonly", "daytype", "macrobasis"];
 
     function clamp(v, low, high) {
       return Math.min(high, Math.max(low, v));
@@ -374,6 +377,7 @@
         activity: document.getElementById("activity").value,
         wheelchairUser: document.getElementById("wheelchairuser").value,
         wheelchairType: document.getElementById("wheelchairtype").value,
+        wheelchairLowOnly: document.getElementById("wheelchairlowonly").checked,
         dayType: document.getElementById("daytype").value
       };
     }
@@ -461,6 +465,14 @@
         document.getElementById("cycleadjustenabled").checked = false;
         document.getElementById("cyclephase").value = "none";
         document.getElementById("cyclebump").value = "100";
+      } else {
+        const breastfeeding = document.getElementById("breastfeeding").value;
+        if (isPregnant && breastfeeding !== "none") {
+          document.getElementById("breastfeeding").value = "none";
+        }
+        if (!isPregnant && breastfeeding !== "none") {
+          document.getElementById("pregnancy").value = "none";
+        }
       }
 
       updateCycleUI();
@@ -485,6 +497,7 @@
 
       if (wheelchairUser !== "yes") {
         document.getElementById("wheelchairtype").value = "manual";
+        document.getElementById("wheelchairlowonly").checked = true;
       }
     }
 
@@ -642,7 +655,7 @@
       }
       setError("");
 
-      const { weight, targetWeight, height, age, sex, pregnancy, breastfeeding, cycleAdjustEnabled, cyclePhase, cycleBumpInput, level, ais, reeModel, phase, pressureInjury, goal, lossRateKgPerWeek, activity, wheelchairUser, wheelchairType, dayType } = values;
+      const { weight, targetWeight, height, age, sex, pregnancy, breastfeeding, cycleAdjustEnabled, cyclePhase, cycleBumpInput, level, ais, reeModel, phase, pressureInjury, goal, lossRateKgPerWeek, activity, wheelchairUser, wheelchairType, wheelchairLowOnly, dayType } = values;
       const macroBasis = document.getElementById("macrobasis").value;
 
       const bmrMifflin = 10 * weight + 6.25 * height - 5 * age + (sex === "male" ? 5 : -161);
@@ -687,17 +700,23 @@
         high: 0.5,
         athlete: 0.25
       }[activity];
-      const wheelchairBump = wheelchairUser === "yes" ? Math.round(wheelchairBaseBump * wheelchairActivityScale) : 0;
+      const wheelchairScaledBump = Math.round(wheelchairBaseBump * wheelchairActivityScale);
+      const wheelchairLowOnlyBump = activity === "low" ? wheelchairBaseBump : 0;
+      const wheelchairBump = wheelchairUser === "yes"
+        ? (wheelchairLowOnly ? wheelchairLowOnlyBump : wheelchairScaledBump)
+        : 0;
 
-      let calories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump;
+      const baselineCalories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump;
+      let calories = baselineCalories;
       let goalDelta = 0;
 
       const targetInfluencedGoal = goal === "maintenance" ? targetDirection : goal;
       const distanceBump = clamp(Math.round(Math.abs(targetDeltaKg) * 20), 0, 200);
       const selectedLossRateKg = clamp(Number.isFinite(lossRateKgPerWeek) ? lossRateKgPerWeek : 0.5, 0.2, 1.0);
       const selectedLossDeficit = Math.round((selectedLossRateKg * 7700) / 7);
+      const maxLossDeficit = Math.round(baselineCalories * 0.25);
 
-      if (goal === "loss") goalDelta = -selectedLossDeficit;
+      if (goal === "loss") goalDelta = -Math.min(selectedLossDeficit, maxLossDeficit);
       else if (targetInfluencedGoal === "loss") goalDelta = -(150 + distanceBump);
       if (targetInfluencedGoal === "gain") goalDelta = 100 + distanceBump;
       if (goal === "recomp") {
@@ -707,6 +726,11 @@
       const isPregnant = sex === "female" && pregnancy !== "none";
       if (isPregnant && goalDelta < 0) {
         goalDelta = 0;
+      }
+
+      const minCalorieFloor = Math.round(Math.max(1200, reeBase * 0.9));
+      if (goalDelta < 0 && baselineCalories + goalDelta < minCalorieFloor) {
+        goalDelta = minCalorieFloor - baselineCalories;
       }
       calories += goalDelta;
 
@@ -783,6 +807,7 @@
     });
 
     document.getElementById("breastfeeding").addEventListener("change", function () {
+      updateFemaleSpecificUI();
       saveState();
       calculate();
     });
@@ -825,6 +850,11 @@
     });
 
     document.getElementById("wheelchairtype").addEventListener("change", function () {
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("wheelchairlowonly").addEventListener("change", function () {
       saveState();
       calculate();
     });

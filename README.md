@@ -4,9 +4,13 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.10.0
+Current version: 1.11.1
 
 ### Minor Releases (new features)
+
+- 1.11.0 (2026-04-15)
+	Summary: Added safety guardrails and refined wheelchair bump behavior.
+	Changes: Made pregnancy/breastfeeding mutually exclusive, capped fat-loss deficits with a calorie floor, and added optional wheelchair bump mode that applies only when activity is Low.
 
 - 1.10.0 (2026-04-15)
 	Summary: Added selectable fat-loss pace.
@@ -25,6 +29,10 @@ Current version: 1.10.0
 	Changes: Pregnancy and breastfeeding calorie additions, optional cycle-aware mode, and pregnancy-safe goal handling.
 
 ### Patch Releases (refinements)
+
+- 1.11.1 (2026-04-15)
+	Summary: Clarified activity selection.
+	Changes: Added training-hours-per-week guidance directly in activity level labels.
 
 - 1.8.1 (2026-04-15)
 	Summary: Added clearer fat-loss progress output.
