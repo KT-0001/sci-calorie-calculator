@@ -4,9 +4,17 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.12.1
+Current version: 1.14.1
 
 ### Minor Releases (new features)
+
+- 1.14.0 (2026-04-15)
+	Summary: Added AIS A/B physio selector.
+	Changes: Added physio/rehab therapy time selector for AIS A/B with conservative activity bumps included in calories and breakdown.
+
+- 1.13.0 (2026-04-15)
+	Summary: Added AIS-adaptive daily routine options.
+	Changes: Daily routine/job demand options now adapt by AIS. A/B uses non-ambulatory routine choices, while C/D includes standing/walking routine options.
 
 - 1.12.0 (2026-04-15)
 	Summary: Updated day context model.
@@ -33,6 +41,10 @@ Current version: 1.12.1
 	Changes: Pregnancy and breastfeeding calorie additions, optional cycle-aware mode, and pregnancy-safe goal handling.
 
 ### Patch Releases (refinements)
+
+- 1.14.1 (2026-04-15)
+	Summary: Reduced overlap between activity and daily routine inputs.
+	Changes: Clarified activity as structured training volume, clarified day routine as non-training movement/job demand, and scaled day-routine bump down as activity volume increases.
 
 - 1.12.1 (2026-04-15)
 	Summary: Fixed timeline and gain/loss pacing logic.

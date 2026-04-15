@@ -181,21 +181,33 @@
         </select>
       </div>
       <div>
-        <label for="activity">Activity</label>
+        <label for="activity">Structured training volume</label>
         <select id="activity">
           <option value="low">Low (0-2 training hrs/week)</option>
           <option value="moderate" selected>Moderate (3-5 training hrs/week)</option>
           <option value="high">High (6-8 training hrs/week)</option>
           <option value="athlete">Athlete (9+ training hrs/week)</option>
         </select>
+        <div class="muted" style="margin-top: 6px;">Use this for planned exercise/training load only.</div>
       </div>
       <div>
         <label for="daytype">Daily routine / job demand</label>
         <select id="daytype">
           <option value="sedentary" selected>Sedentary / mostly seated</option>
-          <option value="mixed">Mixed day (standing/walking)</option>
-          <option value="active_job">Active job / manual day</option>
+          <option value="wheelchair_active">Active wheelchair / transfer-heavy day</option>
+          <option value="upper_manual">Upper-body manual work day</option>
         </select>
+        <div class="muted" style="margin-top: 6px;">Routine options adapt to AIS (A/B non-ambulatory options; C/D includes standing/walking options) and represent non-training movement/job demand.</div>
+      </div>
+      <div id="physioWrap" style="display: none;">
+        <label for="physio">Physio / rehab therapy time (AIS A/B)</label>
+        <select id="physio">
+          <option value="none" selected>None / minimal</option>
+          <option value="one_two">About 1-2 hrs/week</option>
+          <option value="three_five">About 3-5 hrs/week</option>
+          <option value="six_plus">About 6+ hrs/week</option>
+        </select>
+        <div class="muted" style="margin-top: 6px;">Adds a conservative daily average bump for therapy-related activity in motor-complete A/B profiles.</div>
       </div>
       <div>
         <label for="wheelchairuser">Wheelchair user</label>
@@ -259,11 +271,11 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.12.1 | Updated 2026-04-15</a></div>
+  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.14.1 | Updated 2026-04-15</a></div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
-    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "pregnancy", "breastfeeding", "cycleadjustenabled", "cyclephase", "cyclebump", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "lossrate", "activity", "wheelchairuser", "wheelchairtype", "wheelchairlowonly", "daytype", "macrobasis"];
+    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "pregnancy", "breastfeeding", "cycleadjustenabled", "cyclephase", "cyclebump", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "lossrate", "activity", "wheelchairuser", "wheelchairtype", "wheelchairlowonly", "daytype", "physio", "macrobasis"];
 
     function clamp(v, low, high) {
       return Math.min(high, Math.max(low, v));
@@ -377,7 +389,8 @@
         wheelchairUser: document.getElementById("wheelchairuser").value,
         wheelchairType: document.getElementById("wheelchairtype").value,
         wheelchairLowOnly: document.getElementById("wheelchairlowonly").checked,
-        dayType: document.getElementById("daytype").value
+        dayType: document.getElementById("daytype").value,
+        physio: document.getElementById("physio").value
       };
     }
 
@@ -506,6 +519,43 @@
       const label = document.getElementById("lossRateLabel");
       wrap.style.display = goal === "loss" || goal === "gain" ? "block" : "none";
       label.textContent = goal === "gain" ? "Gain pace" : "Fat-loss pace";
+    }
+
+    function updateDayTypeOptionsByAis() {
+      const ais = document.getElementById("ais").value;
+      const dayTypeSelect = document.getElementById("daytype");
+      const physioWrap = document.getElementById("physioWrap");
+      const physioSelect = document.getElementById("physio");
+      const previousValue = dayTypeSelect.value;
+      const isMotorComplete = ais === "A" || ais === "B";
+
+      const options = (ais === "A" || ais === "B")
+        ? [
+            { value: "sedentary", label: "Sedentary / mostly seated" },
+            { value: "wheelchair_active", label: "Active wheelchair / transfer-heavy day" },
+            { value: "upper_manual", label: "Upper-body manual work day" }
+          ]
+        : [
+            { value: "sedentary", label: "Sedentary / mostly seated" },
+            { value: "mixed", label: "Mixed day (standing/walking)" },
+            { value: "active_job", label: "Active job / manual day" }
+          ];
+
+      dayTypeSelect.innerHTML = "";
+      for (const option of options) {
+        const el = document.createElement("option");
+        el.value = option.value;
+        el.textContent = option.label;
+        dayTypeSelect.appendChild(el);
+      }
+
+      const values = options.map((o) => o.value);
+      dayTypeSelect.value = values.includes(previousValue) ? previousValue : "sedentary";
+
+      physioWrap.style.display = isMotorComplete ? "block" : "none";
+      if (!isMotorComplete) {
+        physioSelect.value = "none";
+      }
     }
 
     function getSciFactor(level, ais) {
@@ -656,7 +706,7 @@
       }
       setError("");
 
-      const { weight, targetWeight, height, age, sex, pregnancy, breastfeeding, cycleAdjustEnabled, cyclePhase, cycleBumpInput, level, ais, reeModel, phase, pressureInjury, goal, lossRateKgPerWeek, activity, wheelchairUser, wheelchairType, wheelchairLowOnly, dayType } = values;
+      const { weight, targetWeight, height, age, sex, pregnancy, breastfeeding, cycleAdjustEnabled, cyclePhase, cycleBumpInput, level, ais, reeModel, phase, pressureInjury, goal, lossRateKgPerWeek, activity, wheelchairUser, wheelchairType, wheelchairLowOnly, dayType, physio } = values;
       const macroBasis = document.getElementById("macrobasis").value;
 
       const bmrMifflin = 10 * weight + 6.25 * height - 5 * age + (sex === "male" ? 5 : -161);
@@ -675,15 +725,25 @@
         athlete: 1.24
       }[activity];
 
-      const dayBump = ({
+      const dayBumpBase = ({
         sedentary: 0,
-        mixed: 75,
-        active_job: 175,
+        wheelchair_active: 55,
+        upper_manual: 110,
+        mixed: 45,
+        active_job: 110,
         rest: 0,
         light_training: 100,
         hard_training: 225,
         double_session: 350
       }[dayType]) ?? 0;
+
+      const dayRoutineScaleByActivity = {
+        low: 1.0,
+        moderate: 0.8,
+        high: 0.5,
+        athlete: 0.35
+      }[activity];
+      const dayBump = Math.round(dayBumpBase * dayRoutineScaleByActivity);
 
       const phaseBump = {
         acute: 180,
@@ -710,7 +770,15 @@
         ? (wheelchairLowOnly ? wheelchairLowOnlyBump : wheelchairScaledBump)
         : 0;
 
-      const baselineCalories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump;
+      const isMotorComplete = ais === "A" || ais === "B";
+      const physioBump = isMotorComplete ? ({
+        none: 0,
+        one_two: 70,
+        three_five: 150,
+        six_plus: 230
+      }[physio] ?? 0) : 0;
+
+      const baselineCalories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump + physioBump;
       let calories = baselineCalories;
       let goalDelta = 0;
 
@@ -773,7 +841,7 @@
       const fatPctSplit = (fatKcal / splitTotalKcal) * 100;
       const carbsPct = (carbKcal / splitTotalKcal) * 100;
 
-      const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump;
+      const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump + physioBump;
       const calorieDelta = calories - estimatedMaintenance;
       const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
       const weeklyRateText = estimateWeeklyRateText(targetInfluencedGoal, calorieDelta);
@@ -785,7 +853,7 @@
       document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis, carbsPct);
       document.getElementById("timeline").textContent = goal === "maintenance" ? "" : timelineText;
       document.getElementById("breakdown").textContent =
-        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, pregnancy bump ${pregnancyBump >= 0 ? "+" : ""}${pregnancyBump}, breastfeeding bump ${breastfeedingBump >= 0 ? "+" : ""}${breastfeedingBump}, cycle bump ${cycleBump >= 0 ? "+" : ""}${cycleBump}, wheelchair bump ${wheelchairBump >= 0 ? "+" : ""}${wheelchairBump}, change pace ${selectedChangeRateKg.toFixed(2)} kg/week, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
+        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, physio bump ${physioBump >= 0 ? "+" : ""}${physioBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, pregnancy bump ${pregnancyBump >= 0 ? "+" : ""}${pregnancyBump}, breastfeeding bump ${breastfeedingBump >= 0 ? "+" : ""}${breastfeedingBump}, cycle bump ${cycleBump >= 0 ? "+" : ""}${cycleBump}, wheelchair bump ${wheelchairBump >= 0 ? "+" : ""}${wheelchairBump}, change pace ${selectedChangeRateKg.toFixed(2)} kg/week, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
 
       saveState();
     }
@@ -848,6 +916,12 @@
       handleShare();
     });
 
+    document.getElementById("ais").addEventListener("change", function () {
+      updateDayTypeOptionsByAis();
+      saveState();
+      calculate();
+    });
+
     document.getElementById("wheelchairuser").addEventListener("change", function () {
       updateWheelchairUI();
       saveState();
@@ -864,8 +938,14 @@
       calculate();
     });
 
+    document.getElementById("physio").addEventListener("change", function () {
+      saveState();
+      calculate();
+    });
+
     loadState();
     refreshUnitUI();
+    updateDayTypeOptionsByAis();
     updateFemaleSpecificUI();
     updateWheelchairUI();
     updateGoalUI();
