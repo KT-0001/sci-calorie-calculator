@@ -4,12 +4,35 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-- 1.8.1 (2026-04-15): Added expected weekly change output with explicit fat-loss rate when fat-loss goal is selected.
-- 1.8.0 (2026-04-15): Added wheelchair user/type inputs with electric default bump at 0 and activity-scaled manual bump (base 100 kcal/day).
-- 1.7.2 (2026-04-15): Replaced cycle phase jargon with plain Week 1-4 options and kept custom cycle bump behavior.
-- 1.7.1 (2026-04-15): Added custom cycle bump input (0-150 kcal/day) for optional cycle-aware adjustment.
-- 1.7.0 (2026-04-15): Added female-specific pregnancy and breastfeeding calorie bumps, optional cycle-aware mode, and pregnancy-safe goal handling.
-- 1.6.2 (2026-04-15): Baseline prior to female-specific additions.
+Current version: 1.8.1
+
+### Minor Releases (new features)
+
+- 1.8.0 (2026-04-15)
+	Summary: Added wheelchair-specific calorie logic.
+	Changes: Wheelchair user/type inputs, electric default bump of 0, manual base bump of 100 kcal/day scaled by selected activity.
+
+- 1.7.0 (2026-04-15)
+	Summary: Added female-specific planning features.
+	Changes: Pregnancy and breastfeeding calorie additions, optional cycle-aware mode, and pregnancy-safe goal handling.
+
+### Patch Releases (refinements)
+
+- 1.8.1 (2026-04-15)
+	Summary: Added clearer fat-loss progress output.
+	Changes: Expected weekly change line with explicit kg/week and lb/week messaging for fat-loss mode.
+
+- 1.7.2 (2026-04-15)
+	Summary: Simplified cycle language.
+	Changes: Replaced cycle phase terms with Week 1-4 options.
+
+- 1.7.1 (2026-04-15)
+	Summary: Improved cycle adjustment control.
+	Changes: Added custom cycle bump input (0-150 kcal/day).
+
+- 1.6.2 (2026-04-15)
+	Summary: Baseline build before female-specific additions.
+	Changes: Initial tracked baseline for rollback reference.
 
 ## Publish on GitHub Pages
 
