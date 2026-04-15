@@ -83,6 +83,44 @@
           <option value="female">Female</option>
         </select>
       </div>
+      <div id="femaleFields" style="display: none;">
+        <label for="pregnancy">Pregnancy status</label>
+        <select id="pregnancy">
+          <option value="none" selected>Not pregnant</option>
+          <option value="t1">Pregnant - 1st trimester</option>
+          <option value="t2">Pregnant - 2nd trimester</option>
+          <option value="t3">Pregnant - 3rd trimester</option>
+        </select>
+        <label for="breastfeeding">Breastfeeding</label>
+        <select id="breastfeeding">
+          <option value="none" selected>No</option>
+          <option value="full">Yes, exclusive / mostly breastfeeding</option>
+          <option value="partial">Yes, partial breastfeeding</option>
+        </select>
+        <details class="muted" style="margin-top: 8px;">
+          <summary>Optional SCI lactation info</summary>
+          <div style="margin-top: 6px;">Breastfeeding after SCI can be more complex for injuries at or above T6 due to reported milk production or let-down challenges. Use this as context only and adjust from trend data.</div>
+        </details>
+        <details class="muted" style="margin-top: 8px;">
+          <summary>Advanced: cycle-aware adjustment (optional)</summary>
+          <label for="cycleadjustenabled" style="margin-top: 8px;">
+            <input id="cycleadjustenabled" type="checkbox" style="width: auto; margin-right: 6px;" /> Enable cycle-aware calorie adjustment
+          </label>
+          <div id="cyclePhaseWrap" style="display: none; margin-top: 6px;">
+            <label for="cyclephase">Cycle week</label>
+            <select id="cyclephase">
+              <option value="none" selected>No cycle adjustment</option>
+              <option value="week1">Week 1</option>
+              <option value="week2">Week 2</option>
+              <option value="week3">Week 3</option>
+              <option value="week4">Week 4</option>
+            </select>
+            <label for="cyclebump" style="margin-top: 8px;">Cycle bump (kcal/day)</label>
+            <input id="cyclebump" type="number" min="0" max="150" step="5" inputmode="numeric" value="100" />
+          </div>
+          <div style="margin-top: 6px;">Cycle-related energy differences are usually modest and variable. Keep this optional and refine with weekly trend data.</div>
+        </details>
+      </div>
       <div>
         <label for="level">Neurologic level</label>
         <input id="level" value="T7" placeholder="e.g. C6, T7, L2" />
@@ -185,11 +223,11 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer" id="versionTag">Version 1.6.2 | Updated 2026-04-15</div>
+  <div class="muted footer" id="versionTag">Version 1.7.2 | Updated 2026-04-15</div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
-    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "activity", "daytype", "macrobasis"];
+    const fieldIds = ["weight", "targetweight", "weightunit", "height", "heightunit", "age", "sex", "pregnancy", "breastfeeding", "cycleadjustenabled", "cyclephase", "cyclebump", "level", "ais", "reemodel", "phase", "pressureinjury", "goal", "activity", "daytype", "macrobasis"];
 
     function clamp(v, low, high) {
       return Math.min(high, Math.max(low, v));
@@ -287,6 +325,11 @@
         heightUnit,
         age: Number(document.getElementById("age").value),
         sex: document.getElementById("sex").value,
+        pregnancy: document.getElementById("pregnancy").value,
+        breastfeeding: document.getElementById("breastfeeding").value,
+        cycleAdjustEnabled: document.getElementById("cycleadjustenabled").checked,
+        cyclePhase: document.getElementById("cyclephase").value,
+        cycleBumpInput: Number(document.getElementById("cyclebump").value),
         level: document.getElementById("level").value.toUpperCase().trim(),
         ais: document.getElementById("ais").value,
         reeModel: document.getElementById("reemodel").value,
@@ -311,6 +354,9 @@
       if (!Number.isFinite(values.age) || values.age < 16 || values.age > 100) {
         return "Enter age between 16 and 100 years.";
       }
+      if (!Number.isFinite(values.cycleBumpInput) || values.cycleBumpInput < 0 || values.cycleBumpInput > 150) {
+        return "Cycle bump must be between 0 and 150 kcal/day.";
+      }
       if (!/^[CTLS]\d{1,2}$/i.test(values.level)) {
         return "Neurologic level must look like C6, T7, L2, or S1.";
       }
@@ -324,7 +370,8 @@
     function saveState() {
       const values = {};
       for (const id of fieldIds) {
-        values[id] = document.getElementById(id).value;
+        const el = document.getElementById(id);
+        values[id] = el.type === "checkbox" ? el.checked : el.value;
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
     }
@@ -336,11 +383,58 @@
         const values = JSON.parse(raw);
         for (const id of fieldIds) {
           if (Object.prototype.hasOwnProperty.call(values, id)) {
-            document.getElementById(id).value = values[id];
+            const el = document.getElementById(id);
+            if (el.type === "checkbox") {
+              el.checked = Boolean(values[id]);
+            } else {
+              el.value = values[id];
+            }
           }
         }
       } catch (err) {
         localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    function updateFemaleSpecificUI() {
+      const sex = document.getElementById("sex").value;
+      const pregnancy = document.getElementById("pregnancy").value;
+      const femaleFields = document.getElementById("femaleFields");
+      const goalSelect = document.getElementById("goal");
+      const lossOption = goalSelect.querySelector('option[value="loss"]');
+      const isFemale = sex === "female";
+      const isPregnant = isFemale && pregnancy !== "none";
+
+      femaleFields.style.display = isFemale ? "block" : "none";
+
+      if (lossOption) {
+        lossOption.disabled = isPregnant;
+      }
+
+      if (isPregnant && goalSelect.value === "loss") {
+        goalSelect.value = "maintenance";
+      }
+
+      if (!isFemale) {
+        document.getElementById("pregnancy").value = "none";
+        document.getElementById("breastfeeding").value = "none";
+        document.getElementById("cycleadjustenabled").checked = false;
+        document.getElementById("cyclephase").value = "none";
+        document.getElementById("cyclebump").value = "100";
+      }
+
+      updateCycleUI();
+    }
+
+    function updateCycleUI() {
+      const isFemale = document.getElementById("sex").value === "female";
+      const enabled = document.getElementById("cycleadjustenabled").checked;
+      const cycleWrap = document.getElementById("cyclePhaseWrap");
+
+      cycleWrap.style.display = isFemale && enabled ? "block" : "none";
+
+      if (!isFemale || !enabled) {
+        document.getElementById("cyclephase").value = "none";
       }
     }
 
@@ -401,7 +495,7 @@
       }
       setError("");
 
-      const { weight, targetWeight, height, age, sex, level, ais, reeModel, phase, pressureInjury, goal, activity, dayType } = values;
+      const { weight, targetWeight, height, age, sex, pregnancy, breastfeeding, cycleAdjustEnabled, cyclePhase, cycleBumpInput, level, ais, reeModel, phase, pressureInjury, goal, activity, dayType } = values;
       const macroBasis = document.getElementById("macrobasis").value;
 
       const bmrMifflin = 10 * weight + 6.25 * height - 5 * age + (sex === "male" ? 5 : -161);
@@ -434,8 +528,12 @@
       }[phase];
 
       const pressureInjuryBump = pressureInjury === "yes" ? 200 : 0;
+      const pregnancyBump = sex === "female" ? ({ none: 0, t1: 0, t2: 340, t3: 452 }[pregnancy] ?? 0) : 0;
+      const breastfeedingBump = sex === "female" ? ({ none: 0, full: 400, partial: 275 }[breastfeeding] ?? 0) : 0;
+      const customCycleBump = clamp(Number.isFinite(cycleBumpInput) ? cycleBumpInput : 100, 0, 150);
+      const cycleBump = sex === "female" && cycleAdjustEnabled && cyclePhase !== "none" ? customCycleBump : 0;
 
-      let calories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump;
+      let calories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump;
       let goalDelta = 0;
 
       const targetInfluencedGoal = goal === "maintenance" ? targetDirection : goal;
@@ -445,6 +543,11 @@
       if (targetInfluencedGoal === "gain") goalDelta = 100 + distanceBump;
       if (goal === "recomp") {
         goalDelta = dayType === "rest" ? -75 : 75;
+      }
+
+      const isPregnant = sex === "female" && pregnancy !== "none";
+      if (isPregnant && goalDelta < 0) {
+        goalDelta = 0;
       }
       calories += goalDelta;
 
@@ -482,7 +585,7 @@
       const fatPctSplit = (fatKcal / splitTotalKcal) * 100;
       const carbsPct = (carbKcal / splitTotalKcal) * 100;
 
-      const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump;
+      const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump;
       const calorieDelta = calories - estimatedMaintenance;
       const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
 
@@ -492,7 +595,7 @@
       document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis, carbsPct);
       document.getElementById("timeline").textContent = timelineText;
       document.getElementById("breakdown").textContent =
-        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
+        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, pregnancy bump ${pregnancyBump >= 0 ? "+" : ""}${pregnancyBump}, breastfeeding bump ${breastfeedingBump >= 0 ? "+" : ""}${breastfeedingBump}, cycle bump ${cycleBump >= 0 ? "+" : ""}${cycleBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
 
       saveState();
     }
@@ -506,8 +609,42 @@
       document.getElementById(id).addEventListener("change", saveState);
     }
 
+    document.getElementById("sex").addEventListener("change", function () {
+      updateFemaleSpecificUI();
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("pregnancy").addEventListener("change", function () {
+      updateFemaleSpecificUI();
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("breastfeeding").addEventListener("change", function () {
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("cycleadjustenabled").addEventListener("change", function () {
+      updateCycleUI();
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("cyclephase").addEventListener("change", function () {
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("cyclebump").addEventListener("change", function () {
+      saveState();
+      calculate();
+    });
+
     loadState();
     refreshUnitUI();
+    updateFemaleSpecificUI();
 
     const weightUnitSelect = document.getElementById("weightunit");
     const heightUnitSelect = document.getElementById("heightunit");
