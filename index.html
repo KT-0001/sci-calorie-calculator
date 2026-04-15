@@ -723,7 +723,7 @@
       const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump;
       const calorieDelta = calories - estimatedMaintenance;
       const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
-      const weeklyRateText = estimateWeeklyRateText(goal, calorieDelta);
+      const weeklyRateText = estimateWeeklyRateText(targetInfluencedGoal, calorieDelta);
 
       document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
       document.getElementById("rate").textContent = weeklyRateText;
