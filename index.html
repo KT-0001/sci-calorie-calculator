@@ -193,11 +193,11 @@
       <div>
         <label for="daytype">Daily routine / job demand</label>
         <select id="daytype">
-          <option value="sedentary" selected>Sedentary / mostly seated</option>
-          <option value="wheelchair_active">Active wheelchair / transfer-heavy day</option>
-          <option value="upper_manual">Upper-body manual work day</option>
+          <option value="sedentary" selected>Seated daily living (A/B mode)</option>
+          <option value="wheelchair_active">Wheelchair/transfer-active day (A/B mode)</option>
+          <option value="upper_manual">Upper-body manual task day (A/B mode)</option>
         </select>
-        <div class="muted" style="margin-top: 6px;">Routine options adapt to AIS (A/B non-ambulatory options; C/D includes standing/walking options) and represent non-training movement/job demand.</div>
+        <div class="muted" id="dayTypeHint" style="margin-top: 6px;">AIS A/B mode: non-ambulatory routine options shown. This field represents non-training movement/job demand.</div>
       </div>
       <div id="physioWrap" style="display: none;">
         <label for="physio">Physio / rehab therapy time (AIS A/B)</label>
@@ -524,6 +524,7 @@
     function updateDayTypeOptionsByAis() {
       const ais = document.getElementById("ais").value;
       const dayTypeSelect = document.getElementById("daytype");
+      const dayTypeHint = document.getElementById("dayTypeHint");
       const physioWrap = document.getElementById("physioWrap");
       const physioSelect = document.getElementById("physio");
       const previousValue = dayTypeSelect.value;
@@ -531,9 +532,9 @@
 
       const options = (ais === "A" || ais === "B")
         ? [
-            { value: "sedentary", label: "Sedentary / mostly seated" },
-            { value: "wheelchair_active", label: "Active wheelchair / transfer-heavy day" },
-            { value: "upper_manual", label: "Upper-body manual work day" }
+            { value: "sedentary", label: "Seated daily living (A/B mode)" },
+            { value: "wheelchair_active", label: "Wheelchair/transfer-active day (A/B mode)" },
+            { value: "upper_manual", label: "Upper-body manual task day (A/B mode)" }
           ]
         : [
             { value: "sedentary", label: "Sedentary / mostly seated" },
@@ -556,6 +557,10 @@
       if (!isMotorComplete) {
         physioSelect.value = "none";
       }
+
+      dayTypeHint.textContent = isMotorComplete
+        ? "AIS A/B mode: non-ambulatory routine options shown. This field represents non-training movement/job demand."
+        : "AIS C/D mode: standing/walking routine options shown. This field represents non-training movement/job demand.";
     }
 
     function getSciFactor(level, ais) {
