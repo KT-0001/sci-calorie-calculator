@@ -11,6 +11,9 @@
     label { display: block; margin: 10px 0 4px; }
     input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 10px 0 4px; }
+    .label-row label { margin: 0; }
+    .unit-select { width: auto; min-width: 84px; padding: 6px 8px; }
     .result { font-size: 18px; margin: 8px 0; }
     .muted { color: #555; font-size: 14px; }
     .error { color: #a00; margin-top: 10px; min-height: 20px; }
@@ -48,24 +51,26 @@
   <form class="card" id="calcForm" novalidate>
     <div class="grid">
       <div>
-        <label for="weight" id="weightLabel">Weight (kg)</label>
+        <div class="label-row">
+          <label for="weight" id="weightLabel">Weight</label>
+          <select id="weightunit" class="unit-select" aria-label="Weight unit">
+            <option value="kg" selected>kg</option>
+            <option value="lb">lb</option>
+          </select>
+        </div>
         <input id="weight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="60" />
-        <label for="targetweight" id="targetWeightLabel">Target weight (kg)</label>
+        <label for="targetweight" id="targetWeightLabel">Target weight</label>
         <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
-        <label for="weightunit">Weight unit</label>
-        <select id="weightunit">
-          <option value="kg" selected>kg</option>
-          <option value="lb">lb</option>
-        </select>
       </div>
       <div>
-        <label for="height" id="heightLabel">Height (cm)</label>
+        <div class="label-row">
+          <label for="height" id="heightLabel">Height</label>
+          <select id="heightunit" class="unit-select" aria-label="Height unit">
+            <option value="cm" selected>cm</option>
+            <option value="in">in</option>
+          </select>
+        </div>
         <input id="height" type="number" min="100" max="230" step="0.1" inputmode="decimal" value="173" />
-        <label for="heightunit">Height unit</label>
-        <select id="heightunit">
-          <option value="cm" selected>cm</option>
-          <option value="in">in</option>
-        </select>
       </div>
       <div>
         <label for="age">Age</label>
@@ -180,7 +185,7 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer" id="versionTag">Version 1.6.0 | Updated 2026-04-15</div>
+  <div class="muted footer" id="versionTag">Version 1.6.1 | Updated 2026-04-15</div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
@@ -217,9 +222,9 @@
       const targetWeightLabel = document.getElementById("targetWeightLabel");
       const heightLabel = document.getElementById("heightLabel");
 
-      weightLabel.textContent = `Weight (${weightUnit})`;
-      targetWeightLabel.textContent = `Target weight (${weightUnit})`;
-      heightLabel.textContent = `Height (${heightUnit})`;
+      weightLabel.textContent = "Weight";
+      targetWeightLabel.textContent = "Target weight";
+      heightLabel.textContent = "Height";
 
       if (weightUnit === "kg") {
         weightInput.min = "20";
