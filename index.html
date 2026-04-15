@@ -185,7 +185,7 @@
     <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
   </div>
 
-  <div class="muted footer" id="versionTag">Version 1.6.1 | Updated 2026-04-15</div>
+  <div class="muted footer" id="versionTag">Version 1.6.2 | Updated 2026-04-15</div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
@@ -360,11 +360,11 @@
       return phase === "chronic" ? "Auto->SCI-adjusted" : "Auto->Mifflin";
     }
 
-    function formatMacroLine(label, grams, weightKg, basis) {
+    function formatMacroLine(label, grams, weightKg, basis, splitPct) {
       const basisWeight = basis === "lb" ? fromKg(weightKg, "lb") : weightKg;
       const density = basisWeight > 0 ? grams / basisWeight : 0;
       const densityUnit = basis === "lb" ? "g/lb" : "g/kg";
-      return `${label}: ${Math.round(grams)} g (${density.toFixed(2)} ${densityUnit})`;
+      return `${label}: ${Math.round(grams)} g (${density.toFixed(2)} ${densityUnit}, ${splitPct.toFixed(1)}%)`;
     }
 
     function estimateTimelineText(weightKg, targetWeightKg, calorieDelta) {
@@ -474,14 +474,22 @@
       const fat = (calories * fatPct) / 9;
       const carbs = Math.max(0, (calories - protein * 4 - fat * 9) / 4);
 
+      const proteinKcal = protein * 4;
+      const fatKcal = fat * 9;
+      const carbKcal = carbs * 4;
+      const splitTotalKcal = Math.max(1, proteinKcal + fatKcal + carbKcal);
+      const proteinPct = (proteinKcal / splitTotalKcal) * 100;
+      const fatPctSplit = (fatKcal / splitTotalKcal) * 100;
+      const carbsPct = (carbKcal / splitTotalKcal) * 100;
+
       const estimatedMaintenance = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump;
       const calorieDelta = calories - estimatedMaintenance;
       const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
 
       document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
-      document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis);
-      document.getElementById("fat").textContent = formatMacroLine("Fat", fat, weight, macroBasis);
-      document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis);
+      document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis, proteinPct);
+      document.getElementById("fat").textContent = formatMacroLine("Fat", fat, weight, macroBasis, fatPctSplit);
+      document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis, carbsPct);
       document.getElementById("timeline").textContent = timelineText;
       document.getElementById("breakdown").textContent =
         `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
