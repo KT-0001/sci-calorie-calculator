@@ -181,7 +181,6 @@
           <option value="sci">SCI-adjusted model</option>
           <option value="mifflin">Mifflin-St Jeor (generic)</option>
         </select>
-        <div class="muted" id="reeHint" style="margin-top: 6px;">Auto uses SCI-adjusted REE in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic/AIS scaling. Mifflin is the standard general-population equation.</div>
       </div>
       <div>
         <label for="phase">Injury phase</label>
@@ -200,7 +199,6 @@
           <option value="no" selected>No</option>
           <option value="yes">Yes</option>
         </select>
-        <div class="muted" style="margin-top: 6px;">Use "Yes" for an active sore that is currently healing. This is not a general risk/susceptibility toggle.</div>
       </div>
       <div>
         <label for="goal">Goal</label>
@@ -232,8 +230,6 @@
           <option value="wheelchair_active">Wheelchair/transfer-active day</option>
           <option value="upper_manual">Upper-body manual task day</option>
         </select>
-        <div class="muted" id="dayTypeHint" style="margin-top: 6px;">Non-ambulatory routine options. Use for non-training movement.</div>
-        <div class="muted" id="dayTypeExample" style="margin-top: 6px;">Example: mostly sitting, desk work, light home tasks.</div>
       </div>
       <div>
         <div class="label-with-tip">
@@ -246,7 +242,6 @@
           <option value="high">High (6-8 training hrs/week)</option>
           <option value="athlete">Athlete (9+ training hrs/week)</option>
         </select>
-        <div class="muted" style="margin-top: 6px;">Count planned workouts (gym, sport, intervals, structured cardio/strength). Do not count regular daily movement here.</div>
       </div>
       <div id="physioWrap" style="display: none;">
         <div class="label-with-tip">
@@ -259,7 +254,6 @@
           <option value="three_five">About 3-5 hrs/week</option>
           <option value="six_plus">About 6+ hrs/week</option>
         </select>
-        <div class="muted" style="margin-top: 6px;">For formal rehab sessions (PT/OT, gait/transfer drills, clinic sessions). Keep gym sessions in Training Volume to avoid double-counting.</div>
       </div>
       <div>
         <label for="wheelchairuser">Wheelchair user</label>
@@ -599,7 +593,6 @@
     function updateDayTypeOptionsByAis() {
       const ais = document.getElementById("ais").value;
       const dayTypeSelect = document.getElementById("daytype");
-      const dayTypeHint = document.getElementById("dayTypeHint");
       const physioWrap = document.getElementById("physioWrap");
       const physioSelect = document.getElementById("physio");
       const previousValue = dayTypeSelect.value;
@@ -632,27 +625,6 @@
       if (!isMotorComplete) {
         physioSelect.value = "none";
       }
-
-      dayTypeHint.textContent = isMotorComplete
-        ? "Non-ambulatory routine options. Use for non-training movement."
-        : "Standing/walking routine options. Use for non-training movement.";
-
-      updateDayTypeExample();
-    }
-
-    function updateDayTypeExample() {
-      const selected = document.getElementById("daytype").value;
-      const example = document.getElementById("dayTypeExample");
-
-      const examples = {
-        sedentary: "Example: mostly sitting, desk work, light home tasks.",
-        wheelchair_active: "Example: frequent transfers, pushing chair outdoors, more errands/mobility blocks.",
-        upper_manual: "Example: manual upper-body tasks through the day (workshop, caregiving, repetitive lifting).",
-        mixed: "Example: part seated and part standing/walking, with moderate non-exercise movement.",
-        active_job: "Example: physically demanding day with frequent standing/walking/manual tasks."
-      };
-
-      example.textContent = examples[selected] || examples.sedentary;
     }
 
     function getSciFactor(level, ais) {
@@ -1020,7 +992,6 @@
     });
 
     document.getElementById("daytype").addEventListener("change", function () {
-      updateDayTypeExample();
       saveState();
       calculate();
     });
