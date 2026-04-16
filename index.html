@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SCI Calorie Calculator</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; max-width: 700px; margin: 24px auto; padding: 14px; }
     .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
     .subtitle { margin: 0 0 12px; }
     label { display: block; margin: 10px 0 4px; }
     input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 14px; }
     .label-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 10px 0 4px; }
     .label-row label { margin: 0; }
     .unit-select { width: auto; min-width: 84px; padding: 6px 8px; }
@@ -201,37 +202,6 @@
         </select>
       </div>
       <div>
-        <label for="goal">Goal</label>
-        <select id="goal">
-          <option value="maintenance" selected>Maintenance</option>
-          <option value="loss">Fat loss</option>
-          <option value="gain">Lean gain</option>
-          <option value="recomp">Recomp</option>
-        </select>
-      </div>
-      <div id="lossRateWrap" style="display: none;">
-        <label for="lossrate" id="lossRateLabel">Fat-loss pace</label>
-        <select id="lossrate">
-          <option value="0.20">0.20 kg/week (0.44 lb/week)</option>
-          <option value="0.30">0.30 kg/week (0.66 lb/week)</option>
-          <option value="0.40">0.40 kg/week (0.88 lb/week)</option>
-          <option value="0.50" selected>0.50 kg/week (1.10 lb/week)</option>
-          <option value="0.75">0.75 kg/week (1.65 lb/week)</option>
-          <option value="1.00">1.00 kg/week (2.20 lb/week)</option>
-        </select>
-      </div>
-      <div>
-        <div class="label-with-tip">
-          <label for="daytype">Daily routine</label>
-          <span class="tip" tabindex="0" aria-label="About daily routine">?<span class="tip-text">This captures non-training movement across the day, such as transfers, errands, standing/walking, and work demands.</span></span>
-        </div>
-        <select id="daytype">
-          <option value="sedentary" selected>Seated daily living</option>
-          <option value="wheelchair_active">Wheelchair/transfer-active day</option>
-          <option value="upper_manual">Upper-body manual task day</option>
-        </select>
-      </div>
-      <div>
         <div class="label-with-tip">
           <label for="activity">Training Volume (Gym)</label>
           <span class="tip" tabindex="0" aria-label="About training volume">?<span class="tip-text">Count structured workouts only, including gym strength, intervals, sports sessions, and planned cardio.</span></span>
@@ -255,6 +225,37 @@
           <option value="six_plus">About 6+ hrs/week</option>
         </select>
       </div>
+      <div style="grid-column: 1 / -1;">
+        <div class="label-with-tip">
+          <label for="daytype">Daily routine</label>
+          <span class="tip" tabindex="0" aria-label="About daily routine">?<span class="tip-text">This captures non-training movement across the day, such as transfers, errands, standing/walking, and work demands.</span></span>
+        </div>
+        <select id="daytype">
+          <option value="sedentary" selected>Seated daily living</option>
+          <option value="wheelchair_active">Wheelchair/transfer-active day</option>
+          <option value="upper_manual">Upper-body manual task day</option>
+        </select>
+      </div>
+      <div>
+        <label for="goal">Goal</label>
+        <select id="goal">
+          <option value="maintenance" selected>Maintenance</option>
+          <option value="loss">Fat loss</option>
+          <option value="gain">Lean gain</option>
+          <option value="recomp">Recomp</option>
+        </select>
+      </div>
+      <div id="lossRateWrap" style="display: none;">
+        <label for="lossrate" id="lossRateLabel">Fat-loss pace</label>
+        <select id="lossrate">
+          <option value="0.20">0.20 kg/week (0.44 lb/week)</option>
+          <option value="0.30">0.30 kg/week (0.66 lb/week)</option>
+          <option value="0.40">0.40 kg/week (0.88 lb/week)</option>
+          <option value="0.50" selected>0.50 kg/week (1.10 lb/week)</option>
+          <option value="0.75">0.75 kg/week (1.65 lb/week)</option>
+          <option value="1.00">1.00 kg/week (2.20 lb/week)</option>
+        </select>
+      </div>
       <div>
         <label for="wheelchairuser">Wheelchair user</label>
         <select id="wheelchairuser">
@@ -263,7 +264,10 @@
         </select>
       </div>
       <div id="wheelchairTypeWrap" style="display: none;">
-        <label for="wheelchairtype">Wheelchair type</label>
+        <div class="label-with-tip">
+          <label for="wheelchairtype">Wheelchair type</label>
+          <span class="tip" tabindex="0" aria-label="About wheelchair bump behavior">?<span class="tip-text">Manual defaults to a 100 kcal/day bump that scales down as training volume increases. Electric defaults to 0.</span></span>
+        </div>
         <select id="wheelchairtype">
           <option value="manual" selected>Manual</option>
           <option value="electric">Electric</option>
@@ -271,7 +275,6 @@
         <label for="wheelchairlowonly" style="margin-top: 8px;">
           <input id="wheelchairlowonly" type="checkbox" style="width: auto; margin-right: 6px;" checked /> Apply wheelchair bump only when activity is Low
         </label>
-        <div class="muted" style="margin-top: 6px;">Manual default bump is 100 kcal/day and scales down as selected activity increases. Electric default bump is 0.</div>
       </div>
       <div>
         <label for="macrobasis">Macro density</label>
