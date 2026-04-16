@@ -20,8 +20,62 @@
     .footer { text-align: center; margin-top: 8px; }
     .result-actions { margin-top: 10px; }
     .result-actions button { width: auto; min-width: 140px; }
+    .label-with-tip { display: flex; align-items: center; gap: 6px; }
+    .label-with-tip label { margin: 0; }
+    .tip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid #999;
+      background: #f5f5f5;
+      color: #333;
+      font-size: 12px;
+      line-height: 1;
+      cursor: help;
+      user-select: none;
+    }
+    .tip-text {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(100% + 8px);
+      width: min(260px, 80vw);
+      background: #111;
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.35;
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 10;
+    }
+    .tip:hover .tip-text,
+    .tip:focus .tip-text,
+    .tip:focus-visible .tip-text {
+      opacity: 1;
+      visibility: visible;
+    }
+    .sources-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .source-group { border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px; }
+    .source-group h4 { margin: 0 0 6px; font-size: 14px; }
+    .source-group ul { margin: 0; padding-left: 18px; }
+    .source-group li { margin: 0 0 4px; }
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; }
+      .sources-grid { grid-template-columns: 1fr; }
+      .tip-text {
+        bottom: auto;
+        top: calc(100% + 8px);
+        width: min(240px, 88vw);
+      }
       body { margin: 12px auto; padding: 12px; }
       .result-actions button { width: 100%; }
     }
@@ -118,12 +172,16 @@
         </select>
       </div>
       <div>
-        <label for="reemodel">REE model</label>
+        <div class="label-with-tip">
+          <label for="reemodel">REE model</label>
+          <span class="tip" tabindex="0" aria-label="About REE models">?<span class="tip-text">Auto: SCI-adjusted in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic level and AIS scaling. Mifflin is a general-population baseline formula.</span></span>
+        </div>
         <select id="reemodel">
           <option value="auto" selected>Auto (SCI model for chronic)</option>
           <option value="sci">SCI-adjusted model</option>
           <option value="mifflin">Mifflin-St Jeor (generic)</option>
         </select>
+        <div class="muted" id="reeHint" style="margin-top: 6px;">Auto uses SCI-adjusted REE in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic/AIS scaling. Mifflin is the standard general-population equation.</div>
       </div>
       <div>
         <label for="phase">Injury phase</label>
@@ -134,11 +192,15 @@
         </select>
       </div>
       <div>
-        <label for="pressureinjury">Pressure injury concern</label>
+        <div class="label-with-tip">
+          <label for="pressureinjury">Healing pressure sore now?</label>
+          <span class="tip" tabindex="0" aria-label="About pressure sore field">?<span class="tip-text">Use Yes only for an active pressure sore currently healing. Do not use this as a general susceptibility or risk flag.</span></span>
+        </div>
         <select id="pressureinjury">
           <option value="no" selected>No</option>
           <option value="yes">Yes</option>
         </select>
+        <div class="muted" style="margin-top: 6px;">Use "Yes" for an active sore that is currently healing. This is not a general risk/susceptibility toggle.</div>
       </div>
       <div>
         <label for="goal">Goal</label>
@@ -161,33 +223,43 @@
         </select>
       </div>
       <div>
-        <label for="activity">Training volume</label>
-        <select id="activity">
-          <option value="low">Low (0-2 training hrs/week)</option>
-          <option value="moderate" selected>Moderate (3-5 training hrs/week)</option>
-          <option value="high">High (6-8 training hrs/week)</option>
-          <option value="athlete">Athlete (9+ training hrs/week)</option>
-        </select>
-        <div class="muted" style="margin-top: 6px;">Planned exercise load only.</div>
-      </div>
-      <div>
-        <label for="daytype">Daily routine</label>
+        <div class="label-with-tip">
+          <label for="daytype">Daily routine</label>
+          <span class="tip" tabindex="0" aria-label="About daily routine">?<span class="tip-text">This captures non-training movement across the day, such as transfers, errands, standing/walking, and work demands.</span></span>
+        </div>
         <select id="daytype">
           <option value="sedentary" selected>Seated daily living</option>
           <option value="wheelchair_active">Wheelchair/transfer-active day</option>
           <option value="upper_manual">Upper-body manual task day</option>
         </select>
         <div class="muted" id="dayTypeHint" style="margin-top: 6px;">Non-ambulatory routine options. Use for non-training movement.</div>
+        <div class="muted" id="dayTypeExample" style="margin-top: 6px;">Example: mostly sitting, desk work, light home tasks.</div>
+      </div>
+      <div>
+        <div class="label-with-tip">
+          <label for="activity">Training Volume (Gym)</label>
+          <span class="tip" tabindex="0" aria-label="About training volume">?<span class="tip-text">Count structured workouts only, including gym strength, intervals, sports sessions, and planned cardio.</span></span>
+        </div>
+        <select id="activity">
+          <option value="low">Low (0-2 training hrs/week)</option>
+          <option value="moderate" selected>Moderate (3-5 training hrs/week)</option>
+          <option value="high">High (6-8 training hrs/week)</option>
+          <option value="athlete">Athlete (9+ training hrs/week)</option>
+        </select>
+        <div class="muted" style="margin-top: 6px;">Count planned workouts (gym, sport, intervals, structured cardio/strength). Do not count regular daily movement here.</div>
       </div>
       <div id="physioWrap" style="display: none;">
-        <label for="physio">Physio / rehab therapy time</label>
+        <div class="label-with-tip">
+          <label for="physio">Physio / rehab therapy (non-gym)</label>
+          <span class="tip" tabindex="0" aria-label="About physio and rehab">?<span class="tip-text">Use for formal PT/OT or clinic rehab sessions. Keep normal workouts in Training Volume to avoid double-counting effort.</span></span>
+        </div>
         <select id="physio">
           <option value="none" selected>None / minimal</option>
           <option value="one_two">About 1-2 hrs/week</option>
           <option value="three_five">About 3-5 hrs/week</option>
           <option value="six_plus">About 6+ hrs/week</option>
         </select>
-        <div class="muted" style="margin-top: 6px;">Adds a conservative daily average bump for therapy-related activity in motor-complete A/B profiles.</div>
+        <div class="muted" style="margin-top: 6px;">For formal rehab sessions (PT/OT, gait/transfer drills, clinic sessions). Keep gym sessions in Training Volume to avoid double-counting.</div>
       </div>
       <div>
         <label for="wheelchairuser">Wheelchair user</label>
@@ -235,7 +307,46 @@
     <div class="muted">Target weight steers deficit/surplus size and timeline estimate. This remains an estimate and should be checked against weekly trend data.</div>
   </div>
 
-  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.14.8 | Updated 2026-04-16</a></div>
+  <div class="card" id="sourcesBox">
+    <h3 style="margin: 0 0 10px;">References Used in This Calculator</h3>
+    <div class="muted" style="margin-bottom: 10px;">Grouped by which part of the estimate they inform.</div>
+    <div class="sources-grid">
+      <div class="source-group">
+        <h4>REE Baseline and SCI Adjustment</h4>
+        <ul class="muted">
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/35780202/" target="_blank" rel="noopener noreferrer">Ma et al. 2022</a> - chronic SCI REE prediction</li>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/30014708/" target="_blank" rel="noopener noreferrer">Andersen et al. 2018</a> - equation accuracy in SCI</li>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/29238094/" target="_blank" rel="noopener noreferrer">Holmlund et al. 2018</a> - neurologic profile and expenditure</li>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/39358343/" target="_blank" rel="noopener noreferrer">Nevin et al. 2024</a> - rehab-phase REE context</li>
+        </ul>
+      </div>
+      <div class="source-group">
+        <h4>SCI Nutrition Context and Macro Framing</h4>
+        <ul class="muted">
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/15534431/" target="_blank" rel="noopener noreferrer">Buchholz and Pencharz 2004</a> - chronic SCI energy overview</li>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/33814888/" target="_blank" rel="noopener noreferrer">Farkas et al. 2021</a> - dietetics perspective in SCI</li>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/37726106/" target="_blank" rel="noopener noreferrer">Farkas et al. 2024</a> - intake versus requirements in chronic SCI</li>
+        </ul>
+      </div>
+      <div class="source-group">
+        <h4>Pressure Sore Healing Considerations</h4>
+        <ul class="muted">
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/40008160/" target="_blank" rel="noopener noreferrer">Nevin et al. 2025</a> - nutritional intake with pressure injuries</li>
+          <li>Calculator pressure bump and protein floor are conservative practical defaults, not a diagnostic protocol.</li>
+        </ul>
+      </div>
+      <div class="source-group">
+        <h4>Pregnancy and Breastfeeding</h4>
+        <ul class="muted">
+          <li>Uses standard obstetric energy-addition defaults as a starting point.</li>
+          <li>SCI-specific pregnancy/lactation evidence is limited, so weekly trend data and clinician guidance are recommended.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="muted" style="margin-top: 10px;">Full reference list also available in <a href="README.md#references">README References</a>.</div>
+  </div>
+
+  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.15.1 | Updated 2026-04-16</a></div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
@@ -525,6 +636,23 @@
       dayTypeHint.textContent = isMotorComplete
         ? "Non-ambulatory routine options. Use for non-training movement."
         : "Standing/walking routine options. Use for non-training movement.";
+
+      updateDayTypeExample();
+    }
+
+    function updateDayTypeExample() {
+      const selected = document.getElementById("daytype").value;
+      const example = document.getElementById("dayTypeExample");
+
+      const examples = {
+        sedentary: "Example: mostly sitting, desk work, light home tasks.",
+        wheelchair_active: "Example: frequent transfers, pushing chair outdoors, more errands/mobility blocks.",
+        upper_manual: "Example: manual upper-body tasks through the day (workshop, caregiving, repetitive lifting).",
+        mixed: "Example: part seated and part standing/walking, with moderate non-exercise movement.",
+        active_job: "Example: physically demanding day with frequent standing/walking/manual tasks."
+      };
+
+      example.textContent = examples[selected] || examples.sedentary;
     }
 
     function getSciFactor(level, ais) {
@@ -887,6 +1015,12 @@
 
     document.getElementById("ais").addEventListener("change", function () {
       updateDayTypeOptionsByAis();
+      saveState();
+      calculate();
+    });
+
+    document.getElementById("daytype").addEventListener("change", function () {
+      updateDayTypeExample();
       saveState();
       calculate();
     });

@@ -4,9 +4,13 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.14.8
+Current version: 1.15.1
 
 ### Minor Releases (new features)
+
+- 1.15.0 (2026-04-16)
+	Summary: Added clearer guidance and restored persistent in-page source note.
+	Changes: Clarified REE model definitions, pressure sore meaning, training vs physio separation, and daily routine examples; added an always-visible Sources and Notes card linking to README references.
 
 - 1.14.0 (2026-04-15)
 	Summary: Added AIS A/B physio selector.
@@ -41,6 +45,10 @@ Current version: 1.14.8
 	Changes: Pregnancy and breastfeeding calorie additions, optional cycle-aware mode, and pregnancy-safe goal handling.
 
 ### Patch Releases (refinements)
+
+- 1.15.1 (2026-04-16)
+	Summary: Added tooltip guidance and grouped source box in-page.
+	Changes: Added hover/focus tooltips on key inputs (REE, pressure sore, routine, training, physio) and replaced the generic source note with a categorized references box at the bottom of the calculator page.
 
 - 1.14.8 (2026-04-16)
 	Summary: Removed A/B wording from routine UI copy.
