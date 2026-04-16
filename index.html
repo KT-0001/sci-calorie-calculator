@@ -1011,6 +1011,11 @@
       calculate();
     });
 
+    document.getElementById("activity").addEventListener("change", function () {
+      saveState();
+      calculate();
+    });
+
     document.getElementById("wheelchairuser").addEventListener("change", function () {
       updateWheelchairUI();
       saveState();
@@ -1031,6 +1036,14 @@
       saveState();
       calculate();
     });
+
+    const directRecalcIds = ["weight", "targetweight", "height", "age", "level", "reemodel", "phase", "pressureinjury", "macrobasis"];
+    for (const id of directRecalcIds) {
+      document.getElementById(id).addEventListener("change", function () {
+        saveState();
+        calculate();
+      });
+    }
 
     loadState();
     refreshUnitUI();
