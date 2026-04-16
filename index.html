@@ -97,8 +97,6 @@
           </select>
         </div>
         <input id="weight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="60" />
-        <label for="targetweight" id="targetWeightLabel">Target weight</label>
-        <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
       </div>
       <div>
         <div class="label-row">
@@ -109,6 +107,21 @@
           </select>
         </div>
         <input id="height" type="number" min="100" max="230" step="0.1" inputmode="decimal" value="173" />
+      </div>
+      <div>
+        <label for="targetweight" id="targetWeightLabel">Target weight</label>
+        <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
+      </div>
+      <div>
+        <div class="label-with-tip">
+          <label for="reemodel">REE model</label>
+          <span class="tip" tabindex="0" aria-label="About REE models">?<span class="tip-text">Auto: SCI-adjusted in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic level and AIS scaling. Mifflin is a general-population baseline formula.</span></span>
+        </div>
+        <select id="reemodel">
+          <option value="auto" selected>Auto (SCI model for chronic)</option>
+          <option value="sci">SCI-adjusted model</option>
+          <option value="mifflin">Mifflin-St Jeor (generic)</option>
+        </select>
       </div>
       <div>
         <label for="age">Age</label>
@@ -173,17 +186,6 @@
         </select>
       </div>
       <div>
-        <div class="label-with-tip">
-          <label for="reemodel">REE model</label>
-          <span class="tip" tabindex="0" aria-label="About REE models">?<span class="tip-text">Auto: SCI-adjusted in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic level and AIS scaling. Mifflin is a general-population baseline formula.</span></span>
-        </div>
-        <select id="reemodel">
-          <option value="auto" selected>Auto (SCI model for chronic)</option>
-          <option value="sci">SCI-adjusted model</option>
-          <option value="mifflin">Mifflin-St Jeor (generic)</option>
-        </select>
-      </div>
-      <div>
         <label for="phase">Injury phase</label>
         <select id="phase">
           <option value="acute">Acute (<3 months)</option>
@@ -225,7 +227,7 @@
           <option value="six_plus">About 6+ hrs/week</option>
         </select>
       </div>
-      <div style="grid-column: 1 / -1;">
+      <div>
         <div class="label-with-tip">
           <label for="daytype">Daily routine</label>
           <span class="tip" tabindex="0" aria-label="About daily routine">?<span class="tip-text">This captures non-training movement across the day, such as transfers, errands, standing/walking, and work demands.</span></span>
@@ -245,7 +247,7 @@
           <option value="recomp">Recomp</option>
         </select>
       </div>
-      <div id="lossRateWrap" style="display: none;">
+      <div id="lossRateWrap" style="display: none; grid-column: 1 / -1;">
         <label for="lossrate" id="lossRateLabel">Fat-loss pace</label>
         <select id="lossrate">
           <option value="0.20">0.20 kg/week (0.44 lb/week)</option>
