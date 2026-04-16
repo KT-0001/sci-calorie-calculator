@@ -69,9 +69,13 @@
     .source-group h4 { margin: 0 0 6px; font-size: 14px; }
     .source-group ul { margin: 0; padding-left: 18px; }
     .source-group li { margin: 0 0 4px; }
+    #femaleFields { grid-column: 1 / -1; }
+    .female-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; }
+    .female-full { grid-column: 1 / -1; }
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; }
       .sources-grid { grid-template-columns: 1fr; }
+      .female-grid { grid-template-columns: 1fr; }
       .tip-text {
         bottom: auto;
         top: calc(100% + 8px);
@@ -135,24 +139,29 @@
         </select>
       </div>
       <div id="femaleFields" style="display: none;">
-        <label for="pregnancy">Pregnancy status</label>
-        <select id="pregnancy">
-          <option value="none" selected>Not pregnant</option>
-          <option value="t1">Pregnant - 1st trimester</option>
-          <option value="t2">Pregnant - 2nd trimester</option>
-          <option value="t3">Pregnant - 3rd trimester</option>
-        </select>
-        <label for="breastfeeding">Breastfeeding</label>
-        <select id="breastfeeding">
-          <option value="none" selected>No</option>
-          <option value="full">Yes, exclusive / mostly breastfeeding</option>
-          <option value="partial">Yes, partial breastfeeding</option>
-        </select>
-        <details class="muted" style="margin-top: 8px;">
+        <div class="female-grid">
+          <div>
+            <label for="pregnancy">Pregnancy status</label>
+            <select id="pregnancy">
+              <option value="none" selected>Not pregnant</option>
+              <option value="t1">Pregnant - 1st trimester</option>
+              <option value="t2">Pregnant - 2nd trimester</option>
+              <option value="t3">Pregnant - 3rd trimester</option>
+            </select>
+          </div>
+          <div>
+            <label for="breastfeeding">Breastfeeding</label>
+            <select id="breastfeeding">
+              <option value="none" selected>No</option>
+              <option value="full">Yes, exclusive / mostly breastfeeding</option>
+              <option value="partial">Yes, partial breastfeeding</option>
+            </select>
+          </div>
+        <details class="muted female-full" style="margin-top: 8px;">
           <summary>Optional SCI lactation info</summary>
           <div style="margin-top: 6px;">Breastfeeding after SCI can be more complex for injuries at or above T6 due to reported milk production or let-down challenges. Use this as context only and adjust from trend data.</div>
         </details>
-        <details class="muted" style="margin-top: 8px;">
+        <details class="muted female-full" style="margin-top: 8px;">
           <summary>Advanced: cycle-aware adjustment (optional)</summary>
           <label for="cycleadjustenabled" style="margin-top: 8px;">
             <input id="cycleadjustenabled" type="checkbox" style="width: auto; margin-right: 6px;" /> Enable cycle-aware calorie adjustment
@@ -171,6 +180,7 @@
           </div>
           <div style="margin-top: 6px;">Cycle-related energy differences are usually modest and variable. Keep this optional and refine with weekly trend data.</div>
         </details>
+        </div>
       </div>
       <div>
         <label for="level">Neurologic level</label>
