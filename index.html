@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SCI Calorie Calculator</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; }
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 24px auto; padding: 14px; }
     .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .brief-title { margin: 0 0 6px; font-size: 16px; }
+    .subtitle { margin: 0 0 12px; }
     label { display: block; margin: 10px 0 4px; }
     input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -18,7 +18,6 @@
     .muted { color: #555; font-size: 14px; }
     .error { color: #a00; margin-top: 10px; min-height: 20px; }
     .footer { text-align: center; margin-top: 8px; }
-    .method-list { margin: 6px 0 0; padding-left: 18px; }
     .result-actions { margin-top: 10px; }
     .result-actions button { width: auto; min-width: 140px; }
     @media (max-width: 640px) {
@@ -30,26 +29,7 @@
 </head>
 <body>
   <h1>SCI Calorie Calculator</h1>
-
-  <div class="card">
-    <h2 class="brief-title">Brief</h2>
-    <div class="muted">
-      This calculator is designed for spinal cord injury nutrition planning using assumptions informed by published SCI energy expenditure and macro guidance.
-      Generic calorie calculators are built for non-SCI populations and often do not work well here, so this tool applies SCI-specific adjustment factors.
-    </div>
-  </div>
-
-  <div class="card">
-    <h2 class="brief-title">Method</h2>
-    <div class="muted">How each part of the calculator maps to the literature above:</div>
-    <ul class="method-list">
-      <li><span class="muted">REE model selection: generic Mifflin-St Jeor or SCI-adjusted pathway based on SCI REE validation studies [1,2,3,4].</span></li>
-      <li><span class="muted">SCI adjustment factor (level and AIS): approximates lower REE in SCI populations and can be applied in the SCI model path [1,2,5].</span></li>
-      <li><span class="muted">Phase and pressure injury context: adds clinical-context calorie/protein adjustments, especially during rehabilitation and wound-healing risk periods [4,7].</span></li>
-      <li><span class="muted">Goal deltas and macro structure: informed by SCI nutrition/dietetics evidence and practice-focused reviews [6,8].</span></li>
-      <li><span class="muted">Output is a starting estimate; weekly body-weight and composition trend should guide refinement.</span></li>
-    </ul>
-  </div>
+  <p class="muted subtitle">SCI-specific calorie and macro starting estimates using injury-aware adjustment factors.</p>
 
   <form class="card" id="calcForm" novalidate>
     <div class="grid">
@@ -181,26 +161,26 @@
         </select>
       </div>
       <div>
-        <label for="activity">Structured training volume</label>
+        <label for="activity">Training volume</label>
         <select id="activity">
           <option value="low">Low (0-2 training hrs/week)</option>
           <option value="moderate" selected>Moderate (3-5 training hrs/week)</option>
           <option value="high">High (6-8 training hrs/week)</option>
           <option value="athlete">Athlete (9+ training hrs/week)</option>
         </select>
-        <div class="muted" style="margin-top: 6px;">Use this for planned exercise/training load only.</div>
+        <div class="muted" style="margin-top: 6px;">Planned exercise load only.</div>
       </div>
       <div>
-        <label for="daytype">Daily routine / job demand</label>
+        <label for="daytype">Daily routine</label>
         <select id="daytype">
-          <option value="sedentary" selected>Seated daily living (A/B mode)</option>
-          <option value="wheelchair_active">Wheelchair/transfer-active day (A/B mode)</option>
-          <option value="upper_manual">Upper-body manual task day (A/B mode)</option>
+          <option value="sedentary" selected>Seated daily living</option>
+          <option value="wheelchair_active">Wheelchair/transfer-active day</option>
+          <option value="upper_manual">Upper-body manual task day</option>
         </select>
-        <div class="muted" id="dayTypeHint" style="margin-top: 6px;">AIS A/B mode: non-ambulatory routine options shown. This field represents non-training movement/job demand.</div>
+        <div class="muted" id="dayTypeHint" style="margin-top: 6px;">Non-ambulatory routine options. Use for non-training movement.</div>
       </div>
       <div id="physioWrap" style="display: none;">
-        <label for="physio">Physio / rehab therapy time (AIS A/B)</label>
+        <label for="physio">Physio / rehab therapy time</label>
         <select id="physio">
           <option value="none" selected>None / minimal</option>
           <option value="one_two">About 1-2 hrs/week</option>
@@ -255,23 +235,7 @@
     <div class="muted">Target weight steers deficit/surplus size and timeline estimate. This remains an estimate and should be checked against weekly trend data.</div>
   </div>
 
-  <div class="card">
-    <h2 class="brief-title">Notes</h2>
-    <div class="muted">Core references used to inform the adjustment logic:</div>
-    <ul>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/35780202/" target="_blank" rel="noopener noreferrer">Ma Y, et al. Predicting resting energy expenditure in people with chronic spinal cord injury. Spinal Cord. 2022.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/30014708/" target="_blank" rel="noopener noreferrer">Andersen RE, et al. Accuracy of generic and SCI-specific REE equations in SCI. Can J Diet Pract Res. 2018.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/29238094/" target="_blank" rel="noopener noreferrer">Holmlund T, et al. Energy expenditure after spinal cord injury by neurologic profile. Spinal Cord. 2018.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/39358343/" target="_blank" rel="noopener noreferrer">Nevin AN, et al. REE during SCI rehabilitation and FFM-based equations. Spinal Cord Ser Cases. 2024.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/15534431/" target="_blank" rel="noopener noreferrer">Buchholz AC, Pencharz PB. Energy expenditure in chronic spinal cord injury. Curr Opin Clin Nutr Metab Care. 2004.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/33814888/" target="_blank" rel="noopener noreferrer">Farkas GJ, Sneij A, Gater DR Jr. Dietetics After Spinal Cord Injury: Current Evidence and Future Perspectives. Top Spinal Cord Inj Rehabil. 2021.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/40008160/" target="_blank" rel="noopener noreferrer">Nevin AN, et al. Nutritional intakes in SCI with pressure injuries. Top Spinal Cord Inj Rehabil. 2025.</a></li>
-      <li><a href="https://pubmed.ncbi.nlm.nih.gov/37726106/" target="_blank" rel="noopener noreferrer">Farkas GJ, et al. Energy and protein intake relative to requirements in chronic SCI. Br J Nutr. 2024.</a></li>
-    </ul>
-    <div class="muted">This tool is educational and should be checked against clinical judgement and trend data.</div>
-  </div>
-
-  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.14.1 | Updated 2026-04-15</a></div>
+  <div class="muted footer"><a id="versionTag" href="README.md">Version 1.14.8 | Updated 2026-04-16</a></div>
 
   <script>
     const STORAGE_KEY = "sci-calculator-v1";
@@ -532,9 +496,9 @@
 
       const options = (ais === "A" || ais === "B")
         ? [
-            { value: "sedentary", label: "Seated daily living (A/B mode)" },
-            { value: "wheelchair_active", label: "Wheelchair/transfer-active day (A/B mode)" },
-            { value: "upper_manual", label: "Upper-body manual task day (A/B mode)" }
+            { value: "sedentary", label: "Seated daily living" },
+            { value: "wheelchair_active", label: "Wheelchair/transfer-active day" },
+            { value: "upper_manual", label: "Upper-body manual task day" }
           ]
         : [
             { value: "sedentary", label: "Sedentary / mostly seated" },
@@ -559,8 +523,8 @@
       }
 
       dayTypeHint.textContent = isMotorComplete
-        ? "AIS A/B mode: non-ambulatory routine options shown. This field represents non-training movement/job demand."
-        : "AIS C/D mode: standing/walking routine options shown. This field represents non-training movement/job demand.";
+        ? "Non-ambulatory routine options. Use for non-training movement."
+        : "Standing/walking routine options. Use for non-training movement.";
     }
 
     function getSciFactor(level, ais) {

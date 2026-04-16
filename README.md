@@ -4,7 +4,7 @@ Static web app for calorie and macro planning with SCI-specific adjustments.
 
 ## Version Tracker
 
-Current version: 1.14.1
+Current version: 1.14.8
 
 ### Minor Releases (new features)
 
@@ -41,6 +41,34 @@ Current version: 1.14.1
 	Changes: Pregnancy and breastfeeding calorie additions, optional cycle-aware mode, and pregnancy-safe goal handling.
 
 ### Patch Releases (refinements)
+
+- 1.14.8 (2026-04-16)
+	Summary: Removed A/B wording from routine UI copy.
+	Changes: Simplified daily routine options and hints by removing explicit A/B mode labels while preserving the same selection logic.
+
+- 1.14.7 (2026-04-16)
+	Summary: Tightened field wording.
+	Changes: Shortened training and daily-routine labels/hints for a cleaner form and removed unused compact-card CSS.
+
+- 1.14.6 (2026-04-16)
+	Summary: Streamlined SCI-specific header copy.
+	Changes: Replaced the Brief and Method cards with one concise SCI-focused subtitle above the form to keep the interface clean.
+
+- 1.14.5 (2026-04-16)
+	Summary: Tightened above-the-fold spacing.
+	Changes: Reduced page outer spacing and compacted the Brief and Method cards so the calculator inputs appear higher on first load.
+
+- 1.14.4 (2026-04-16)
+	Summary: Condensed method description for cleaner UI.
+	Changes: Replaced the multi-line Method bullet list on the calculator page with one concise sentence while retaining full source citations in the README.
+
+- 1.14.3 (2026-04-16)
+	Summary: Simplified interface presentation.
+	Changes: Removed the Notes card from the calculator page for a cleaner layout while keeping full citations in the README References section.
+
+- 1.14.2 (2026-04-16)
+	Summary: Moved references out of the calculator UI.
+	Changes: Removed in-page citation list from the Notes card and centralized all literature links in the README References section.
 
 - 1.14.1 (2026-04-15)
 	Summary: Reduced overlap between activity and daily routine inputs.
@@ -87,3 +115,16 @@ Your shared URL will look like:
 ## Local run
 
 Open `index.html` in a browser.
+
+## References
+
+Core references used to inform adjustment logic:
+
+1. Ma Y, et al. Predicting resting energy expenditure in people with chronic spinal cord injury. Spinal Cord. 2022. https://pubmed.ncbi.nlm.nih.gov/35780202/
+2. Andersen RE, et al. Accuracy of generic and SCI-specific REE equations in SCI. Can J Diet Pract Res. 2018. https://pubmed.ncbi.nlm.nih.gov/30014708/
+3. Holmlund T, et al. Energy expenditure after spinal cord injury by neurologic profile. Spinal Cord. 2018. https://pubmed.ncbi.nlm.nih.gov/29238094/
+4. Nevin AN, et al. REE during SCI rehabilitation and FFM-based equations. Spinal Cord Ser Cases. 2024. https://pubmed.ncbi.nlm.nih.gov/39358343/
+5. Buchholz AC, Pencharz PB. Energy expenditure in chronic spinal cord injury. Curr Opin Clin Nutr Metab Care. 2004. https://pubmed.ncbi.nlm.nih.gov/15534431/
+6. Farkas GJ, Sneij A, Gater DR Jr. Dietetics After Spinal Cord Injury: Current Evidence and Future Perspectives. Top Spinal Cord Inj Rehabil. 2021. https://pubmed.ncbi.nlm.nih.gov/33814888/
+7. Nevin AN, et al. Nutritional intakes in SCI with pressure injuries. Top Spinal Cord Inj Rehabil. 2025. https://pubmed.ncbi.nlm.nih.gov/40008160/
+8. Farkas GJ, et al. Energy and protein intake relative to requirements in chronic SCI. Br J Nutr. 2024. https://pubmed.ncbi.nlm.nih.gov/37726106/
