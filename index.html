@@ -318,13 +318,12 @@
 
   <div class="card">
     <div class="result" id="calories">Calories: —</div>
-    <div class="muted" id="explain">Explain my number: —</div>
     <div class="result" id="rate">Expected weekly change: —</div>
     <div class="result" id="protein">Protein: —</div>
     <div class="result" id="fat">Fat: —</div>
     <div class="result" id="carbs">Carbs: —</div>
+    <div class="muted" id="breakdown">Explain my number: —</div>
     <div class="result" id="timeline">Timeline to target: —</div>
-    <div class="muted" id="breakdown">Breakdown: —</div>
     <div class="result-actions">
       <button id="shareButton" type="button">Share plan</button>
     </div>
@@ -869,17 +868,32 @@
       }[activity];
       const wheelchairScaledBump = Math.round(wheelchairBaseBump * wheelchairActivityScale);
       const wheelchairLowOnlyBump = activity === "low" ? wheelchairBaseBump : 0;
-      const wheelchairBump = wheelchairUser === "yes"
+      const wheelchairBaseAppliedBump = wheelchairUser === "yes"
         ? (wheelchairLowOnly ? wheelchairLowOnlyBump : wheelchairScaledBump)
         : 0;
+      const wheelchairRoutineOverlapScale = ({
+        sedentary: 1.0,
+        wheelchair_active: 0.6,
+        upper_manual: 0.75,
+        mixed: 0.85,
+        active_job: 0.7
+      }[dayType]) ?? 1.0;
+      const wheelchairBump = Math.round(wheelchairBaseAppliedBump * wheelchairRoutineOverlapScale);
 
       const isMotorComplete = ais === "A" || ais === "B";
-      const physioBump = isMotorComplete ? ({
+      const physioBaseBump = isMotorComplete ? ({
         none: 0,
         one_two: 70,
         three_five: 150,
         six_plus: 230
       }[physio] ?? 0) : 0;
+      const physioTrainingOverlapScale = ({
+        low: 1.0,
+        moderate: 0.8,
+        high: 0.6,
+        athlete: 0.45
+      }[activity]) ?? 1.0;
+      const physioBump = Math.round(physioBaseBump * physioTrainingOverlapScale);
 
       const baselineCalories = reeBase * activityMultiplier + dayBump + phaseBump + pressureInjuryBump + pregnancyBump + breastfeedingBump + cycleBump + wheelchairBump + physioBump;
       let calories = baselineCalories;
@@ -958,22 +972,16 @@
       const calorieDelta = calories - estimatedMaintenance;
       const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
       const weeklyRateText = estimateWeeklyRateText(targetInfluencedGoal, calorieDelta);
-      const activityLabel = document.getElementById("activity").selectedOptions[0].textContent;
-      const dayTypeLabel = document.getElementById("daytype").selectedOptions[0].textContent;
-      const phaseLabel = document.getElementById("phase").selectedOptions[0].textContent;
-      const pressureLabel = pressureInjury === "yes" ? "active pressure sore healing" : "no active pressure sore";
-      const goalDirectionText = goalDelta > 0 ? `adds ${Math.abs(goalDelta)} kcal/day for your goal` : goalDelta < 0 ? `reduces ${Math.abs(goalDelta)} kcal/day for your goal` : "keeps goal adjustment neutral";
-      const explainText = `Explain my number: ${reeLabel} REE, ${activityLabel.toLowerCase()} training, ${dayTypeLabel.toLowerCase()} routine, ${phaseLabel.toLowerCase()}, ${pressureLabel}; this ${goalDirectionText}.`;
+      const trainingDelta = Math.round(reeBase * (activityMultiplier - 1));
 
       document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
-      document.getElementById("explain").textContent = explainText;
       document.getElementById("rate").textContent = weeklyRateText;
       document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis, proteinPct);
       document.getElementById("fat").textContent = formatMacroLine("Fat", fat, weight, macroBasis, fatPctSplit);
       document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis, carbsPct);
       document.getElementById("timeline").textContent = goal === "loss" || goal === "gain" ? timelineText : "";
       document.getElementById("breakdown").textContent =
-        `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, physio bump ${physioBump >= 0 ? "+" : ""}${physioBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, pregnancy bump ${pregnancyBump >= 0 ? "+" : ""}${pregnancyBump}, breastfeeding bump ${breastfeedingBump >= 0 ? "+" : ""}${breastfeedingBump}, cycle bump ${cycleBump >= 0 ? "+" : ""}${cycleBump}, wheelchair bump ${wheelchairBump >= 0 ? "+" : ""}${wheelchairBump}, change pace ${selectedChangeRateKg.toFixed(2)} kg/week, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
+        `Explain my number: REE (${reeLabel}) ${Math.round(reeBase)} kcal; training ${trainingDelta >= 0 ? "+" : ""}${trainingDelta}; daily routine ${dayBump >= 0 ? "+" : ""}${dayBump}; physio ${physioBump >= 0 ? "+" : ""}${physioBump}; injury phase ${phaseBump >= 0 ? "+" : ""}${phaseBump}; pressure sore ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}; pregnancy ${pregnancyBump >= 0 ? "+" : ""}${pregnancyBump}; breastfeeding ${breastfeedingBump >= 0 ? "+" : ""}${breastfeedingBump}; cycle ${cycleBump >= 0 ? "+" : ""}${cycleBump}; wheelchair ${wheelchairBump >= 0 ? "+" : ""}${wheelchairBump}; goal adjustment ${goalDelta >= 0 ? "+" : ""}${goalDelta}.`;
 
       saveState();
     }
