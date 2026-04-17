@@ -113,10 +113,6 @@
         <input id="height" type="number" min="100" max="230" step="0.1" inputmode="decimal" value="173" />
       </div>
       <div>
-        <label for="targetweight" id="targetWeightLabel">Target weight</label>
-        <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
-      </div>
-      <div>
         <div class="label-with-tip">
           <label for="reemodel">REE model</label>
           <span class="tip" tabindex="0" aria-label="About REE models">?<span class="tip-text">Auto: SCI-adjusted in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic level and AIS scaling. Mifflin is a general-population baseline formula.</span></span>
@@ -268,6 +264,10 @@
           <option value="1.00">1.00 kg/week (2.20 lb/week)</option>
         </select>
       </div>
+      <div id="targetWeightWrap" style="display: none; grid-column: 1 / -1;">
+        <label for="targetweight" id="targetWeightLabel">Target weight</label>
+        <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
+      </div>
       <div>
         <label for="wheelchairuser">Wheelchair user</label>
         <select id="wheelchairuser">
@@ -303,6 +303,7 @@
 
   <div class="card">
     <div class="result" id="calories">Calories: —</div>
+    <div class="muted" id="explain">Explain my number: —</div>
     <div class="result" id="rate">Expected weekly change: —</div>
     <div class="result" id="protein">Protein: —</div>
     <div class="result" id="fat">Fat: —</div>
@@ -485,7 +486,7 @@
       if (!Number.isFinite(values.height) || values.height < 100 || values.height > 230) {
         return "Enter height between 100 and 230 cm.";
       }
-      if (!Number.isFinite(values.targetWeight) || values.targetWeight < 20 || values.targetWeight > 300) {
+      if ((values.goal === "loss" || values.goal === "gain") && (!Number.isFinite(values.targetWeight) || values.targetWeight < 20 || values.targetWeight > 300)) {
         return "Enter target weight between 20 and 300 kg.";
       }
       if (!Number.isFinite(values.age) || values.age < 16 || values.age > 100) {
@@ -600,8 +601,11 @@
     function updateGoalUI() {
       const goal = document.getElementById("goal").value;
       const wrap = document.getElementById("lossRateWrap");
+      const targetWrap = document.getElementById("targetWeightWrap");
       const label = document.getElementById("lossRateLabel");
-      wrap.style.display = goal === "loss" || goal === "gain" ? "block" : "none";
+      const isChangeGoal = goal === "loss" || goal === "gain";
+      wrap.style.display = isChangeGoal ? "block" : "none";
+      targetWrap.style.display = isChangeGoal ? "block" : "none";
       label.textContent = goal === "gain" ? "Gain pace" : "Fat-loss pace";
     }
 
@@ -866,18 +870,28 @@
       let calories = baselineCalories;
       let goalDelta = 0;
 
-      const targetInfluencedGoal = goal === "maintenance" ? targetDirection : goal;
+      const targetInfluencedGoal = goal;
       const distanceBump = clamp(Math.round(Math.abs(targetDeltaKg) * 20), 0, 200);
       const selectedChangeRateKg = clamp(Number.isFinite(lossRateKgPerWeek) ? lossRateKgPerWeek : 0.5, 0.2, 1.0);
       const selectedChangeCalories = Math.round((selectedChangeRateKg * 7700) / 7);
       const maxGoalDelta = Math.round(baselineCalories * 0.25);
 
-      if (goal === "loss") goalDelta = -Math.min(selectedChangeCalories, maxGoalDelta);
-      else if (goal === "gain") goalDelta = Math.min(selectedChangeCalories, maxGoalDelta);
-      else if (targetInfluencedGoal === "loss") goalDelta = -(150 + distanceBump);
-      if (targetInfluencedGoal === "gain") goalDelta = 100 + distanceBump;
-      if (goal === "recomp") {
+      if (goal === "loss") {
+        if (targetDeltaKg > 0.25) {
+          goalDelta = 0;
+        } else {
+          goalDelta = -Math.min(selectedChangeCalories + distanceBump, maxGoalDelta);
+        }
+      } else if (goal === "gain") {
+        if (targetDeltaKg < -0.25) {
+          goalDelta = 0;
+        } else {
+          goalDelta = Math.min(selectedChangeCalories + distanceBump, maxGoalDelta);
+        }
+      } else if (goal === "recomp") {
         goalDelta = dayType === "sedentary" ? -75 : 75;
+      } else {
+        goalDelta = 0;
       }
 
       const isPregnant = sex === "female" && pregnancy !== "none";
@@ -929,13 +943,20 @@
       const calorieDelta = calories - estimatedMaintenance;
       const timelineText = estimateTimelineText(weight, targetWeight, calorieDelta);
       const weeklyRateText = estimateWeeklyRateText(targetInfluencedGoal, calorieDelta);
+      const activityLabel = document.getElementById("activity").selectedOptions[0].textContent;
+      const dayTypeLabel = document.getElementById("daytype").selectedOptions[0].textContent;
+      const phaseLabel = document.getElementById("phase").selectedOptions[0].textContent;
+      const pressureLabel = pressureInjury === "yes" ? "active pressure sore healing" : "no active pressure sore";
+      const goalDirectionText = goalDelta > 0 ? `adds ${Math.abs(goalDelta)} kcal/day for your goal` : goalDelta < 0 ? `reduces ${Math.abs(goalDelta)} kcal/day for your goal` : "keeps goal adjustment neutral";
+      const explainText = `Explain my number: ${reeLabel} REE, ${activityLabel.toLowerCase()} training, ${dayTypeLabel.toLowerCase()} routine, ${phaseLabel.toLowerCase()}, ${pressureLabel}; this ${goalDirectionText}.`;
 
       document.getElementById("calories").textContent = `Calories: ${Math.round(calories)} kcal`;
+      document.getElementById("explain").textContent = explainText;
       document.getElementById("rate").textContent = weeklyRateText;
       document.getElementById("protein").textContent = formatMacroLine("Protein", protein, weight, macroBasis, proteinPct);
       document.getElementById("fat").textContent = formatMacroLine("Fat", fat, weight, macroBasis, fatPctSplit);
       document.getElementById("carbs").textContent = formatMacroLine("Carbs", carbs, weight, macroBasis, carbsPct);
-      document.getElementById("timeline").textContent = goal === "maintenance" ? "" : timelineText;
+      document.getElementById("timeline").textContent = goal === "loss" || goal === "gain" ? timelineText : "";
       document.getElementById("breakdown").textContent =
         `Breakdown: REE model ${reeLabel}, REE ${Math.round(reeBase)}, SCI factor ${sciFactor.toFixed(2)}, activity x${activityMultiplier.toFixed(2)}, day bump ${dayBump >= 0 ? "+" : ""}${dayBump}, physio bump ${physioBump >= 0 ? "+" : ""}${physioBump}, phase bump ${phaseBump >= 0 ? "+" : ""}${phaseBump}, pressure bump ${pressureInjuryBump >= 0 ? "+" : ""}${pressureInjuryBump}, pregnancy bump ${pregnancyBump >= 0 ? "+" : ""}${pregnancyBump}, breastfeeding bump ${breastfeedingBump >= 0 ? "+" : ""}${breastfeedingBump}, cycle bump ${cycleBump >= 0 ? "+" : ""}${cycleBump}, wheelchair bump ${wheelchairBump >= 0 ? "+" : ""}${wheelchairBump}, change pace ${selectedChangeRateKg.toFixed(2)} kg/week, goal adjust ${goalDelta >= 0 ? "+" : ""}${goalDelta}, target delta ${targetDeltaKg >= 0 ? "+" : ""}${targetDeltaKg.toFixed(1)} kg.`;
 
