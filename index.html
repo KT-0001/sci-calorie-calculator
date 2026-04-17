@@ -69,6 +69,17 @@
     .source-group h4 { margin: 0 0 6px; font-size: 14px; }
     .source-group ul { margin: 0; padding-left: 18px; }
     .source-group li { margin: 0 0 4px; }
+    .section-heading {
+      grid-column: 1 / -1;
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border-top: 1px solid #ececec;
+      padding-top: 10px;
+      margin-top: 2px;
+    }
     #femaleFields { grid-column: 1 / -1; }
     .female-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; }
     .female-full { grid-column: 1 / -1; }
@@ -92,6 +103,7 @@
 
   <form class="card" id="calcForm" novalidate>
     <div class="grid">
+      <div class="section-heading">Basics</div>
       <div>
         <div class="label-row">
           <label for="weight" id="weightLabel">Weight</label>
@@ -111,17 +123,6 @@
           </select>
         </div>
         <input id="height" type="number" min="100" max="230" step="0.1" inputmode="decimal" value="173" />
-      </div>
-      <div>
-        <div class="label-with-tip">
-          <label for="reemodel">REE model</label>
-          <span class="tip" tabindex="0" aria-label="About REE models">?<span class="tip-text">Auto: SCI-adjusted in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic level and AIS scaling. Mifflin is a general-population baseline formula.</span></span>
-        </div>
-        <select id="reemodel">
-          <option value="auto" selected>Auto (SCI model for chronic)</option>
-          <option value="sci">SCI-adjusted model</option>
-          <option value="mifflin">Mifflin-St Jeor (generic)</option>
-        </select>
       </div>
       <div>
         <label for="age">Age</label>
@@ -178,6 +179,7 @@
         </details>
         </div>
       </div>
+      <div class="section-heading">Injury Profile</div>
       <div>
         <label for="level">Neurologic level</label>
         <input id="level" value="T7" placeholder="e.g. C6, T7, L2" />
@@ -207,6 +209,27 @@
         <select id="pressureinjury">
           <option value="no" selected>No</option>
           <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="section-heading">Fitness Setup</div>
+      <div>
+        <label for="goal">Fitness goal</label>
+        <select id="goal">
+          <option value="maintenance" selected>Maintenance</option>
+          <option value="loss">Fat loss</option>
+          <option value="gain">Lean gain</option>
+          <option value="recomp">Recomp</option>
+        </select>
+      </div>
+      <div>
+        <div class="label-with-tip">
+          <label for="reemodel">REE model</label>
+          <span class="tip" tabindex="0" aria-label="About REE models">?<span class="tip-text">Auto: SCI-adjusted in chronic phase and Mifflin in acute/subacute. SCI-adjusted applies neurologic level and AIS scaling. Mifflin is a general-population baseline formula.</span></span>
+        </div>
+        <select id="reemodel">
+          <option value="auto" selected>Auto (SCI model for chronic)</option>
+          <option value="sci">SCI-adjusted model</option>
+          <option value="mifflin">Mifflin-St Jeor (generic)</option>
         </select>
       </div>
       <div>
@@ -245,12 +268,10 @@
         </select>
       </div>
       <div>
-        <label for="goal">Fitness goal</label>
-        <select id="goal">
-          <option value="maintenance" selected>Maintenance</option>
-          <option value="loss">Fat loss</option>
-          <option value="gain">Lean gain</option>
-          <option value="recomp">Recomp</option>
+        <label for="macrobasis">Macro density</label>
+        <select id="macrobasis">
+          <option value="kg" selected>Show g/kg</option>
+          <option value="lb">Show g/lb</option>
         </select>
       </div>
       <div id="lossRateWrap" style="display: none; grid-column: 1 / -1;">
@@ -268,6 +289,7 @@
         <label for="targetweight" id="targetWeightLabel">Target weight</label>
         <input id="targetweight" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="58" />
       </div>
+      <div class="section-heading">Wheelchair</div>
       <div>
         <label for="wheelchairuser">Wheelchair user</label>
         <select id="wheelchairuser">
@@ -287,13 +309,6 @@
         <label for="wheelchairlowonly" style="margin-top: 8px;">
           <input id="wheelchairlowonly" type="checkbox" style="width: auto; margin-right: 6px;" checked /> Apply wheelchair bump only when activity is Low
         </label>
-      </div>
-      <div>
-        <label for="macrobasis">Macro density</label>
-        <select id="macrobasis">
-          <option value="kg" selected>Show g/kg</option>
-          <option value="lb">Show g/lb</option>
-        </select>
       </div>
     </div>
 
